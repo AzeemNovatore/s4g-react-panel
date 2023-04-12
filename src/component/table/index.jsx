@@ -123,7 +123,7 @@ export function TableComponent({
             ))
           ) : (
             <tr>
-              <td colspan="5" className="text-center">
+              <td colspan="7" className="text-center">
                 {" "}
                 No Data Found
               </td>

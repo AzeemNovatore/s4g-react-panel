@@ -46,12 +46,25 @@ export default function Addquestionmodal({
     });
   };
 
+  // const optionAddHandler = (e, index) => {
+  //   const { name, value } = e.target;
+  //   const list = [...questionvalues.options];
+  //   list[index][name] = value;
+  //   setQuestionvalues({ ...questionvalues, options: list });
+  // };
+
   const optionAddHandler = (e, index) => {
     const { name, value } = e.target;
     const list = [...questionvalues.options];
     list[index][name] = value;
+    if (list[index].title && list[index].value && list[index].title !== list[index].value) {
+      list[index].error = "Title and Value must be same";
+    } else {
+      delete list[index].error;
+    }
     setQuestionvalues({ ...questionvalues, options: list });
   };
+  
 
   const optionImageHandler = async (e) => {
     console.log("e.target.files[0]", e.target.files[0]);
@@ -71,26 +84,49 @@ export default function Addquestionmodal({
     setLoadingVideo(0);
   };
 
-  const handleInputClick= (i)=>{
-    if(!addInput){
-    setAddInput(true)
-    setQuestionvalues({...questionvalues, isOther: false})
-    setIndex(i)
-    // setQuestionvalues({
-    //   ...questionvalues,
-    //   options: [...questionvalues?.options, { title: "", value: "" }],
-    // });
-    }
-    else{
-      setAddInput(false)
-      setIndex(null)
-      setQuestionvalues(current => {
-        const {isOther, ...rest} = current;
+  // const handleInputClick= (i)=>{
+  //   if(!addInput){
+  //   setAddInput(true)
+  //   setQuestionvalues({...questionvalues, isOther: true})
+  //   setIndex(i)
+  //   // setQuestionvalues({
+  //   //   ...questionvalues,
+  //   //   options: [...questionvalues?.options, { title: "", value: "" }],
+  //   // });
+  //   }
+  //   else{
+  //     setAddInput(false)
+  //     setIndex(null)
+  //     setQuestionvalues(current => {
+  //       const {isOther, ...rest} = current;
 
-        return rest;
+  //       return rest;
+  //     });
+  //   }
+  // }
+
+  const handleInputClick = (i) => {
+    if (!addInput) {
+      setAddInput(true);
+      setIndex(i);
+  
+      setQuestionvalues((current) => {
+        const list = [...current.options];
+        list[i].isOther = true;
+        return { ...current, options: list };
+      });
+    } else {
+      setAddInput(false);
+      setIndex(null);
+
+      setQuestionvalues((current) => {
+        const list = [...current.options];
+        delete list[i].isOther;
+        return { ...current, options: list };
       });
     }
-  }
+  };
+  
 
   const imageupload = () => {
     setLoading(true);
@@ -608,6 +644,7 @@ export default function Addquestionmodal({
                           value={item.value}
                           onChange={(e) => optionAddHandler(e, i)}
                         />
+                        {item.error  && <div className="error__msg">{item.error}</div>}
                         { addInput && index === i ? 
                         <input
                           type="text"

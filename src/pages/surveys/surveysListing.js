@@ -152,7 +152,6 @@ export default function Surveys() {
     }
   }, [surveys]);
 
-
   useEffect(() => {
     handlePagination();
   }, [itemOffset, itemSinglePage]);

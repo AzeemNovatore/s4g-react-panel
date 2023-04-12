@@ -10,9 +10,6 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-sweet-progress/lib/style.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "remixicon/fonts/remixicon.css";
-import 'react-datetime-picker/dist/DateTimePicker.css';
-import 'react-calendar/dist/Calendar.css';
-import 'react-clock/dist/Clock.css';
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
