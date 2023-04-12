@@ -25,7 +25,6 @@ export default function ClientSurveyDetails() {
   const [singleItemSurveyBoolean, setSingleItemSurveyBoolean] = useState(false);
   const history = useHistory();
   const { id } = useParams();
-  const { submissions } = useSubmissions();
 
   useEffect(() => {
     getSurveys();

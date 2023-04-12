@@ -109,7 +109,7 @@ export function TableComponent({
                 </td>
                 <td>{SecondsToDate(item?.data?.target?.to?.seconds * 1000)}</td>
                 <td>{item?.data?.target?.surveyresponse}</td>
-                <td>{item?.activeSurveys}</td>
+                <td>{item?.data?.target?.surveyresponsecomplete}</td>
                 <td>
                   <Button
                     buttonClass={"add__charity p-2"}

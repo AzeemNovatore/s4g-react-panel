@@ -73,6 +73,9 @@ export default function useSurveys() {
               id: doc.id,
             }));
 
+            console.log(submissionsarr,'submission');
+
+
             // if (
             //   submissionsarr?.length >= surveys[i].data.target?.surveyresponse
             // )
@@ -80,6 +83,7 @@ export default function useSurveys() {
             const submissionRef = doc(db, collections.survey, surveys[i].id);
             const payload = {
               target: {
+                surveyresponsecomplete: submissionsarr?.length,
                 active:
                   submissionsarr?.length >=
                   surveys[i].data.target?.surveyresponse
@@ -94,16 +98,16 @@ export default function useSurveys() {
                       //     surveys[i].data.target?.surveyresponse
                       true
                     : surveys[i].data?.target?.active,
-                isDraft: surveys[i].data.target?.isDraft,
-                age: surveys[i].data.target?.age,
-                ageIds: surveys[i].data.target?.ageIds,
-                education: surveys[i].data.target?.education,
-                gender: surveys[i].data.target?.gender,
-                kids: surveys[i].data.target?.kids,
-                relationStatus: surveys[i].data.target?.relationStatus,
-                surveyresponse: surveys[i].data.target?.surveyresponse,
-                from: surveys[i].data.target?.from,
-                to: surveys[i].data.target?.to,
+                      isDraft: surveys[i].data.target?.isDraft,
+                      age: surveys[i].data.target?.age,
+                      ageIds: surveys[i].data.target?.ageIds,
+                      education: surveys[i].data.target?.education,
+                      gender: surveys[i].data.target?.gender,
+                      kids: surveys[i].data.target?.kids,
+                      relationStatus: surveys[i].data.target?.relationStatus,
+                      surveyresponse: surveys[i].data.target?.surveyresponse,
+                      from: surveys[i].data.target?.from,
+                      to: surveys[i].data.target?.to,
               },
             };
             await surveySubmissionDoc(submissionRef, payload);
