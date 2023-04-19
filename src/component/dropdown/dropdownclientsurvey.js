@@ -1,36 +1,11 @@
-// import React, { useState } from "react";
-// import { MultiSelect } from "react-multi-select-component";
-// export default function Dropdownclientsurvey({
-//   selected,
-//   handleChange,
-//   optionsclient,
-//   name,
-// }) {
-//   return (
-//     <div className="mt-2">
-//       <MultiSelect
-//       selectionLimit={1}
-//       name={name}
-//         options={optionsclient}
-//         value={selected}
-//         onChange={(values) => {
-//             handleChange(values,"client", "clientName")}}
-//         labelledBy="Select Client"
-//         shouldToggleOnHover={false}
-//         disableSearch={true}
-//       />
-//     </div>
-//   );
-// }
+import React, { useState } from "react";
+import Select from "react-select";
 
-
-
-import React, { useState } from 'react';
-
-import Select from 'react-select';
-
-
-export default function Dropdownclientsurvey({options,defaultValue, handleChange}){
+export default function Dropdownclientsurvey({
+  options,
+  defaultValue,
+  handleChange,
+}) {
   const [isClearable, setIsClearable] = useState(true);
   const [isSearchable, setIsSearchable] = useState(true);
   const [isDisabled, setIsDisabled] = useState(false);
@@ -38,20 +13,20 @@ export default function Dropdownclientsurvey({options,defaultValue, handleChange
   const [isRtl, setIsRtl] = useState(false);
 
   return (
-    <div className='mt-1'>
-        <Select
-          className="select-basic-single"
-          classNamePrefix="select"
-          defaultValue={defaultValue}
-          isDisabled={isDisabled}
-          isLoading={isLoading}
-          isClearable={isClearable}
-          isRtl={isRtl}
-          isSearchable={isSearchable}
-          name="client"
-          options={options}
-          onChange={(e)=>handleChange(e,"client", "clientName")}
-        />
-      </div>
+    <div className="mt-1">
+      <Select
+        className="select-basic-single"
+        classNamePrefix="select"
+        defaultValue={defaultValue}
+        isDisabled={isDisabled}
+        isLoading={isLoading}
+        isClearable={isClearable}
+        isRtl={isRtl}
+        isSearchable={isSearchable}
+        name="client"
+        options={options}
+        onChange={handleChange}
+      />
+    </div>
   );
-};
+}

@@ -46,12 +46,25 @@ export default function Addquestionmodal({
     });
   };
 
+  // const optionAddHandler = (e, index) => {
+  //   const { name, value } = e.target;
+  //   const list = [...questionvalues.options];
+  //   list[index][name] = value;
+  //   setQuestionvalues({ ...questionvalues, options: list });
+  // };
+
   const optionAddHandler = (e, index) => {
     const { name, value } = e.target;
     const list = [...questionvalues.options];
     list[index][name] = value;
+    if (list[index].title && list[index].value && list[index].title !== list[index].value) {
+      list[index].error = "Title and Value must be same";
+    } else {
+      delete list[index].error;
+    }
     setQuestionvalues({ ...questionvalues, options: list });
   };
+  
 
   // const optionAddHandler = (e, index) => {
   //   const { name, value } = e.target;

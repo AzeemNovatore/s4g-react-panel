@@ -14,6 +14,7 @@ import {
   addClient,
   updateClient,
   surveys,
+  viewClient,
 } from "../../routes/pathnames";
 import { AddIcon } from "../../utils/image";
 import { toast } from "react-toastify";
@@ -37,19 +38,20 @@ export default function Clients() {
   const { getClients, clients } = useClients();
   const { setLoading } = useContext(LoaderContext);
 
-  const [singleViewClient, setSingleViewClient] = useState();
+  const [singleItemClient, setSingleItemClient] = useState([]);
   const [boolean, setBoolean] = useState(false);
   const [booleanUpdateClient, setBooleanUpdateClient] = useState(false);
   const [booleanViewClient, setBooleanViewClient] = useState(false);
-  const [searchClient, setSearchClient] = useState("");
   const [show, setShow] = useState(false);
   const [itemClient, setItemClient] = useState();
   const [currentItems, setCurrentItems] = useState(null);
   const [pageCount, setPageCount] = useState(0);
   const [itemOffset, setItemOffset] = useState(0);
+  const [singleItemClientBoolean, setSingleItemClientBoolean] = useState(false);
   const [updateClientState, setupdateClientState] = useState([]);
   const [viewClientState, setviewClientState] = useState([]);
   const [tableList, setTableList] = useState([]);
+  const [searchClient, setSearchClient] = useState("");
   const [itemSinglePage, setItemSinglePage] = useState(10);
   const [surveyIds, setSurveyIds] = useState([]);
   const [data, setData] = useState([]);
@@ -68,27 +70,6 @@ export default function Clients() {
     handleShow();
   };
 
-  // const getTotalSurverys = (id) => {
-  //   if (id) {
-  //     const surveysByClientId = surveyIds?.filter(
-  //       (item, idx) => item?.id === id
-  //     );
-  //     return surveysByClientId?.length;
-  //   }
-  // };
-  // useEffect(() => {
-  //   if (surveys?.length > 0) {
-  //     let survey = [];
-  //     const surveyId = surveys?.map((item, idx) => {
-  //       const obj = {
-  //         id: item?.data?.client?.clientid,
-  //       };
-  //       survey.push(obj);
-  //     });
-  //     setSurveyIds(survey);
-  //   }
-  // }, [surveys]);
-
   const deleteClient = async () => {
     try {
       setLoading(true);
@@ -103,8 +84,6 @@ export default function Clients() {
     handleClose();
   };
 
-  console.log(clients, surveys, "clients");
-
   const resolveTableList = () => {
     const clientsList = [...clients];
 
@@ -113,7 +92,7 @@ export default function Clients() {
         (item, idx) =>
           item?.data?.client?.clientid === clients?.[i]?.data?.clientid
       );
-      console.log(totalSurveys, "here are total surveys");
+      // console.log(totalSurveys, "here are total surveys");
       // console.log(new Date(1680721200 * 1000).getTime(), "seconds");
       // console.log(new Date().getTime());
 
@@ -171,6 +150,16 @@ export default function Clients() {
   }, [itemOffset, itemSinglePage]);
 
   useEffect(() => {
+    if (singleItemClientBoolean) {
+      history.push({
+        pathname: viewClient,
+        state: { detail: singleItemClient },
+      });
+      setSingleItemClientBoolean(false);
+    }
+  }, [singleItemClient]);
+
+  useEffect(() => {
     if (booleanUpdateClient) {
       history.push({
         pathname: updateClient,
@@ -184,9 +173,13 @@ export default function Clients() {
     const filtered = currentItems?.filter((item) =>
       item.data.client_name.toLowerCase().includes(searchClient.toLowerCase())
     );
-
     setData(filtered);
-  }, [setSearchClient, currentItems]);
+  }, [searchClient, currentItems]);
+
+  const viewSingleClient = (item) => {
+    setSingleItemClient(item);
+    setSingleItemClientBoolean(true);
+  };
 
   return (
     <>
@@ -219,6 +212,7 @@ export default function Clients() {
         viewDetails={viewDetails}
         buttonText="View Details"
         handleDelete={deleteModal}
+        viewSingleClient={viewSingleClient}
         tableData={tableList}
         handlePageClick={handlePageClick}
         pageCount={pageCount}

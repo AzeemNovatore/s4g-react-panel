@@ -165,7 +165,7 @@ export default function Surveys() {
       setSingleItemSurveyBoolean(false);
     }
   }, [singleItemSurvey]);
-console.log(singleItemSurvey,"survey data");
+  
   useEffect(() => {
     if (surveyUpdateBoolean) {
       history.push({

@@ -12,7 +12,7 @@ const bannerImages = "/banner_Images";
 const drafts = "/draft_Surveys";
 const clients = "/clients";
 const updateClient = "/update_Client/:id";
-const viewClient = "/view_Client/:id"
+const viewClient = "/viewClient"
 const clientSurveyDetails = "/clients/clientSurveyDetails/:id";
 const addClient = "/clients/addClient"
 

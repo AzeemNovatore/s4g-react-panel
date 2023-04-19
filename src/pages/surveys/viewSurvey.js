@@ -44,7 +44,7 @@ export default function SingleItemSurvey() {
                   <div className="w-50">
                     <h5>Company / Client Name</h5>
                     <p className="mb-0">
-                      {data?.detail?.data?.client?.clientName?.label}
+                      {data?.detail?.data?.client?.clientName}
                     </p>
                   </div>
                   <div className="w-50">

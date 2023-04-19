@@ -17,6 +17,7 @@ export function TableComponent({
   viewClient,
   surveysList,
   tableName,
+  viewSingleClient,
 }) {
   const SecondsToDate = (seconds) => {
     const date = new Date(seconds);
@@ -43,20 +44,17 @@ export function TableComponent({
                 <td className="first-td">{index + 1}</td>
                 <td>{item?.data?.client_name}</td>
                 <td>{item?.data?.cont_name}</td>
-                <td>{item?.totalSurveys?.length}</td>
-                <td>{item?.completedSurveys}</td>
-                <td>{item?.activeSurveys}</td>
+                <td className="text-center">{item?.totalSurveys?.length}</td>
+                <td className="text-center">{item?.completedSurveys}</td>
+                <td className="text-center">{item?.activeSurveys}</td>
                 <td>
                   <div className="d-flex align-items-center gap-2">
-                    <div>
-                      <Link
-                        to={{
-                          pathname: `/view_client/${item.id}`,
-                          state: { viewMode: true },
-                        }}
-                      >
-                        <img src={passwordShow} alt="eyes" className="cursor" />
-                      </Link>
+                    <div
+                      onClick={() => {
+                        viewSingleClient(item);
+                      }}
+                    >
+                      <img src={passwordShow} alt="eyes" className="cursor" />
                     </div>
 
                     <div>
@@ -77,7 +75,7 @@ export function TableComponent({
                 </td>
                 <td>
                   <Button
-                    buttonClass={"add__charity p-2"}
+                    buttonClass={"add__charity m-0"}
                     text={buttonText}
                     handleClick={() => viewDetails(item?.data?.clientid)}
                   />
@@ -108,11 +106,15 @@ export function TableComponent({
                   {SecondsToDate(item?.data?.target?.from?.seconds * 1000)}
                 </td>
                 <td>{SecondsToDate(item?.data?.target?.to?.seconds * 1000)}</td>
-                <td>{item?.data?.target?.surveyresponse}</td>
-                <td>{item?.data?.target?.surveyresponsecomplete}</td>
+                <td className="text-center">
+                  {item?.data?.target?.surveyresponse}
+                </td>
+                <td className="text-center">
+                  {item?.data?.target?.surveyresponsecomplete}
+                </td>
                 <td>
                   <Button
-                    buttonClass={"add__charity p-2"}
+                    buttonClass={"add__charity m-0"}
                     text={buttonText}
                     handleClick={() => {
                       viewDetails(item);

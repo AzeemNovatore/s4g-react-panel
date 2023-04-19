@@ -34,29 +34,21 @@ export default function UpdateSurvey() {
 
   useEffect(() => {
     if (clients?.length > 0) {
-      let client = []
-      const clientsNames = clients?.map((item,idx)=> {
-        const obj = {
+      let client = [];
+      clients?.map((item, idx) => {
+        client.push({
           label: item?.data?.client_name,
-          value: item?.data?.client_name,
-          id: item?.data?.clientid
-      }
-      client.push(obj)
-      
-    })
-    setClientsNames(client)
-  }
+          value: item?.data?.clientid,
+        });
+      });
+      setClientsNames(client);
+    }
   }, [clients]);
-
-  console.log("data", data);
 
   const initialformvalues = {
     client: {
-      clientName: {
-        label: data?.detail?.data?.client?.clientName,
-        value: data?.detail?.data?.client?.clientName
-      },
-      clientid: data?.detail?.data?.client?.clientid,
+      label: data?.detail?.data?.client?.clientName,
+      value: data?.detail?.data?.client?.clientid,
     },
     reward: {
       tokens: data?.detail?.data?.reward?.tokens,
@@ -116,6 +108,7 @@ export default function UpdateSurvey() {
     imageUrl: [],
   };
 
+  const [show, setShow] = useState(false);
   const [formError, setFormError] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
   const [questionindex, setQuestionindex] = useState();
@@ -334,8 +327,8 @@ export default function UpdateSurvey() {
               const currentDate = new Date();
               const payload = {
                 client: {
-                  clientName: formvalues?.client?.clientName,
-                  clientid: formvalues?.client?.clientid,
+                  clientName: formvalues?.client?.label,
+                  clientid: formvalues?.client?.value,
                 },
                 reward: {
                   tokens: parseInt(formvalues.reward.tokens),
@@ -421,8 +414,8 @@ export default function UpdateSurvey() {
     if (!values?.survey?.questions || values.survey.questions.length === 0) {
       errors.survey.questions = "Questions is Required";
     }
-    if (!values?.client?.clientName) {
-      errors.client.clientName = "Client Name is Required";
+    if (!values?.client?.label) {
+      errors.client.label = "Client Name is Required";
     }
     // if (!values?.customer?.customerid) {
     //   errors.customer.customerid = "Customer ID is Required";
@@ -468,23 +461,16 @@ export default function UpdateSurvey() {
     return errors;
   };
 
-  const [show, setShow] = useState(false);
-
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const onClientChange = (value, step,key) =>{
-  setFormvalues((prev)=> ({
-    ...prev,
-    [step]:{
-      ...prev[step],
-      [key]: value?.label,
-      clientid: value?.id,
-    }
-  }))
-  
 
-} 
-console.log(formvalues?.client?.clientName, "client name");
+  const onClientChange = (value) => {
+    setFormvalues((prev) => ({
+      ...prev,
+      client: value,
+    }));
+  };
+
   return (
     <>
       <Addquestionmodal
@@ -570,7 +556,7 @@ console.log(formvalues?.client?.clientName, "client name");
             <div className="col-xl-4 col-lg-6 mb-3">
               <div className="">
                 <label className="fw-bold">
-                 Company / Client Name <span className="redColor">*</span>{" "}
+                  Company / Client Name <span className="redColor">*</span>{" "}
                 </label>{" "}
                 <br />
                 {/* <input
@@ -581,16 +567,13 @@ console.log(formvalues?.client?.clientName, "client name");
                   placeholder="enter your customer reference"
                   onChange={handleChange}
                 /> */}
-                <Dropdownclientsurvey 
-                  options={clientsNames ?? []} 
-                  defaultValue={formvalues?.client?.clientName} 
-                  handleChange={onClientChange} 
-                  />
-
-                {formError?.client?.clientName ? (
-                  <p className="error__msg ">
-                    {formError?.client?.clientName}
-                  </p>
+                <Dropdownclientsurvey
+                  options={clientsNames ?? []}
+                  defaultValue={formvalues?.client}
+                  handleChange={onClientChange}
+                />
+                {formError?.client?.label ? (
+                  <p className="error__msg ">{formError?.client?.label}</p>
                 ) : (
                   ""
                 )}
@@ -606,16 +589,14 @@ console.log(formvalues?.client?.clientName, "client name");
                 <input
                   type="text"
                   name="clientid"
-                  value={formvalues?.client?.clientid}
+                  value={formvalues?.client?.value}
                   data-obj="client"
                   placeholder="enter your client ID"
                   onChange={handleChange}
                   disabled
                 />
-                {formError?.client?.clientid ? (
-                  <p className="error__msg ">
-                    {formError?.client?.clientid}
-                  </p>
+                {formError?.client?.value ? (
+                  <p className="error__msg ">{formError?.client?.value}</p>
                 ) : (
                   ""
                 )}
@@ -829,6 +810,7 @@ console.log(formvalues?.client?.clientName, "client name");
               </div>
             </div>
           </div>
+
           <div className="row">
             <div className="charity_ques d-flex justify-content-between">
               <h3>

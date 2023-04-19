@@ -26,8 +26,8 @@ export default function AddSurvey() {
   // sruveys add all values
   const initialformvalues = {
     client: {
-      clientName: "",
-      clientid: "",
+      label: "",
+      value: "",
     },
     reward: {
       tokens: "",
@@ -68,6 +68,7 @@ export default function AddSurvey() {
     title: "",
     imageUrl: [],
   };
+
   const history = useHistory();
   const [formvalues, setFormvalues] = useState({ ...initialformvalues });
   const [previewImage, setPreviewImage] = useState(uploadImg);
@@ -76,7 +77,6 @@ export default function AddSurvey() {
   const [videoFile, setVideoFile] = useState(null);
   const { setLoading } = useContext(LoaderContext);
   const [uploadVideoBoolean, setUploadVideoBoolean] = useState(true);
-  // const [otherOptionBoolean, setOtherOptionBoolean] = useState(false);
   const [questionvalues, setQuestionvalues] = useState({
     ...initialquestoinsvalues,
   });
@@ -123,7 +123,6 @@ export default function AddSurvey() {
       target: { ...formvalues.target, [name]: value },
     });
   };
-  
 
   const imageHandler = (e) => {
     const { dataset } = e.target;
@@ -180,7 +179,7 @@ export default function AddSurvey() {
 
   const onSelectChange = (name, value) =>
     setQuestionvalues({ ...questionvalues, [name]: value });
-     
+
   const addqustions = () => {
     const updated = { ...formvalues };
     updated.survey.questions.push({ ...questionvalues });
@@ -207,33 +206,24 @@ export default function AddSurvey() {
     setFormvalues({ ...formvalues, questions: formvalues?.survey?.questions });
   };
 
-
-  const onClientChange = (value, step,key) =>{
-    setFormvalues((prev)=> ({
+  const onClientChange = (value) => {
+    setFormvalues((prev) => ({
       ...prev,
-      [step]:{
-        ...prev[step],
-        [key]: value?.label,
-        clientid: value?.id,
-      }
-    }))
-    
-  } 
-  
+      client: value,
+    }));
+  };
+
   useEffect(() => {
     if (clients?.length > 0) {
-      let client = []
-      const clientsNames = clients?.map((item,idx)=> {
-        const obj = {
+      let client = [];
+      clients?.map((item, idx) => {
+        client.push({
           label: item?.data?.client_name,
-          value: item?.data?.client_name,
-          id: item?.data?.clientid
-      }
-      client.push(obj)
-      
-    })
-    setClientsNames(client)
-  }
+          value: item?.data?.clientid,
+        });
+      });
+      setClientsNames(client);
+    }
   }, [clients]);
 
   useEffect(() => {
@@ -305,8 +295,8 @@ export default function AddSurvey() {
               const newDocRef = doc(collection(db, collections.survey));
               const payload = {
                 client: {
-                  clientName: formvalues?.client?.clientName,
-                  clientid: formvalues.client.clientid,
+                  clientName: formvalues?.client?.label,
+                  clientid: formvalues.client.value,
                 },
                 reward: {
                   tokens: parseInt(formvalues.reward.tokens),
@@ -388,11 +378,11 @@ export default function AddSurvey() {
     if (!values?.survey?.questions || values.survey?.questions?.length === 0) {
       errors.survey.questions = "Questions is Required";
     }
-    if (!values?.client?.clientName) {
-      errors.client.clientName = "Client Name is Required";
+    if (!values?.client?.label) {
+      errors.client.label = "Client Name is Required";
     }
-    // if (!values?.client?.clientid) {
-    //   errors.client.clientid = "Client ID is Required";
+    // if (!values?.client?.value) {
+    //   errors.client.value = "Client ID is Required";
     // }
     if (!values?.target?.age || values.target?.age?.length === 0) {
       errors.target.age = "Age is Required";
@@ -446,8 +436,7 @@ export default function AddSurvey() {
     };
     filereader.readAsDataURL(formvalues?.survey?.surveyImage);
   }, [formvalues?.survey?.surveyImage]);
-  // console.log(formvalues?.client?.clientName,"client name");
-  // console.log(formvalues?.client?.clientid,"client id");
+
   return (
     <>
       <Addquestionmodal
@@ -525,15 +514,13 @@ export default function AddSurvey() {
                   Company / Client Name <span className="redColor">*</span>{" "}
                 </label>{" "}
                 <br />
-                <Dropdownclientsurvey 
-                  options={clientsNames ?? []} 
-                  defaultValue={formvalues?.client?.clientName} 
-                  handleChange={onClientChange} 
-                  />
-                {formError?.client?.clientName ? (
-                  <p className="error__msg ">
-                    {formError?.client?.clientName}
-                  </p>
+                <Dropdownclientsurvey
+                  options={clientsNames}
+                  defaultValue={formvalues?.client}
+                  handleChange={onClientChange}
+                />
+                {formError?.client?.label ? (
+                  <p className="error__msg ">{formError?.client?.label}</p>
                 ) : (
                   ""
                 )}
@@ -550,7 +537,7 @@ export default function AddSurvey() {
                 <input
                   type="text"
                   name="clientid"
-                  value={formvalues?.client?.clientid}
+                  value={formvalues?.client?.value}
                   data-obj="client"
                   placeholder=""
                   onChange={handleChange}

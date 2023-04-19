@@ -26,7 +26,8 @@ export default function Updatequestionmodal({
   const [optionImageFile, setOptionImageFile] = useState(null);
   const [updateImage, setUpdateImage] = useState(null);
   const [indexImage, setIndexImage] = useState();
-
+  const [addInput, setAddInput] = useState(false);
+  const [removeField, setRemoveField] = useState(false);
   const [state, setState] = useState({
     title: "",
     fieldtype: "",
@@ -164,7 +165,6 @@ export default function Updatequestionmodal({
 
   const handleOptionChange = (e, index) => {
     const { name, value } = e.target;
-
     const list = [...state.options];
     list[index][name] = value;
     setState({ ...state, options: list });
@@ -269,6 +269,24 @@ export default function Updatequestionmodal({
     });
   };
 
+  const handleInputField = (index, status) => {
+    if (status === "removeField") {
+      setRemoveField(true);
+      setState((current) => {
+        const list = [...current.options];
+        delete list[index].isOther;
+        return { ...current, options: list };
+      });
+    } else {
+      setRemoveField(false);
+      setState((current) => {
+        const list = [...current.options];
+        list[index].isOther = true;
+        return { ...current, options: list };
+      });
+    }
+  };
+
   useEffect(() => {
     const uploadFile5 = () => {
       setLoading(true);
@@ -323,6 +341,10 @@ export default function Updatequestionmodal({
 
     updateImage && uploadFile5();
   }, [updateImage]);
+
+  useEffect(()=>{
+    console.log('state.options',state.options)
+  },[state.options])
 
   return (
     <Modal show={show} onHide={handleClose}>
@@ -439,7 +461,7 @@ export default function Updatequestionmodal({
                 )}
                 <h6 className="mt-3 fw-bold text-center">OPTIONS</h6>
                 {questionvalues?.fieldtype === "Choice" ? (
-                  state?.options?.length === 4 ? (
+                  state?.options?.length === undefined ? (
                     ""
                   ) : (
                     <div
@@ -491,14 +513,6 @@ export default function Updatequestionmodal({
                       </div>
 
                       <input
-                        type="text"
-                        name="value"
-                        value={item.value}
-                        placeholder="Ex : 1A"
-                        onChange={(e) => handleOptionChange(e, i)}
-                        className="form-control mt-1"
-                      />
-                      <input
                         type={`${
                           questionvalues?.fieldtype === "Image" ? "url" : "text"
                         }`}
@@ -506,13 +520,57 @@ export default function Updatequestionmodal({
                         placeholder={`${
                           questionvalues?.fieldtype === "Image"
                             ? "  https://cdn.pixabay.com/photo/2022/11/20/09/43/moorea-7603918_960_720.jpg"
-                            : "Ex : Which is the best place to visit"
+                            : "Enter Option Title"
                         }`}
                         required
                         value={item.title}
                         onChange={(e) => handleOptionChange(e, i)}
                         className="form-control mt-1"
                       />
+
+                      <input
+                        type="text"
+                        name="value"
+                        value={(item.value = item.title)}
+                        placeholder="Enter Option Value"
+                        onChange={(e) => handleOptionChange(e, i)}
+                        className="form-control mt-1"
+                        disabled
+                        hidden
+                      />
+                      {
+                      item?.isOther ? (
+                        <>
+                          <input
+                            type="text"
+                            name="Other"
+                            className="form-control mt-2"
+                            placeholder="Other"
+                            disabled
+                          />
+                          <div className="draft_btn d-flex justify-content-end mt-3 me-2">
+                            <button
+                              className="m-0"
+                              onClick={() => handleInputField(i, "removeField")}
+                              type="button"
+                            >
+                              Remove Field
+                            </button>
+                          </div>
+                        </>
+                      ) : removeField === true ? (
+                        <div className="draft_btn d-flex justify-content-end mt-3 me-2">
+                          <button
+                            className="m-0"
+                            onClick={() => handleInputField(i, "addField")}
+                            type="button"
+                          >
+                            Add Field
+                          </button>
+                        </div>
+                      ) : (
+                        <></>
+                      )}
                     </div>
                   ))}
               </>
@@ -520,7 +578,7 @@ export default function Updatequestionmodal({
               ""
             )}
             {questionvalues?.fieldtype === "Image" &&
-              (state.options?.length === 4 ? (
+              (state.options?.length === undefined ? (
                 ""
               ) : (
                 <div

@@ -14,6 +14,7 @@ import {
   ClientSurveyDetails,
   AddClient,
 } from "../../pages";
+import SingleItemClient from "../../pages/clients/viewClient";
 
 import {
   addCharity,
@@ -113,7 +114,7 @@ const privateRoutes = [
   },
   {
     title: "Client Detail",
-    component: AddClient,
+    component: SingleItemClient,
     path: viewClient,
   },
   {

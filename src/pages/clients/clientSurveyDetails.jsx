@@ -25,6 +25,7 @@ export default function ClientSurveyDetails() {
   const [singleItemSurveyBoolean, setSingleItemSurveyBoolean] = useState(false);
   const history = useHistory();
   const { id } = useParams();
+  const { submissions } = useSubmissions();
 
   useEffect(() => {
     getSurveys();
@@ -36,8 +37,6 @@ export default function ClientSurveyDetails() {
     );
     setSurveyList(listSurveys);
   }, [surveys]);
-
-  console.log(surveys, "surveys");
 
   const viewDetails = (item) => {
     setSingleItemSurvey(item);
@@ -53,8 +52,6 @@ export default function ClientSurveyDetails() {
       setSingleItemSurveyBoolean(false);
     }
   }, [singleItemSurvey]);
-
-  console.log(singleItemSurvey, "single");
 
   return (
     <>

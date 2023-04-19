@@ -21,6 +21,7 @@ export default function AddClient() {
   const moveToClients = () => {
     history.push(clients);
   };
+
   const initialFormValues = {
     client_name: "",
     cont_name: "",
@@ -28,7 +29,7 @@ export default function AddClient() {
     address: "",
     ph_no: "",
     note: "",
-    total_surveys: [],
+    // total_surveys: [],
   };
 
   const [formvalues, setFormvalues] = useState({ ...initialFormValues });
@@ -88,7 +89,6 @@ export default function AddClient() {
     });
     history.push(clients);
   };
-
   const handleChange = (e) => {
     const { name, value, type } = e.target;
     setFormvalues((prev) => ({
