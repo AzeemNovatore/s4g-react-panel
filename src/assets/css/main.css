@@ -859,11 +859,18 @@
   margin-bottom: 0;
 }
 
-.charitydescription {
+.charitydescription,
+.charitydetail {
   width: 100px;
   font-weight: 400;
   font-size: 16px;
   font-family: "Poppins";
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.del-charity {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

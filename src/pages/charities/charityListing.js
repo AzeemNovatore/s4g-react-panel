@@ -174,12 +174,12 @@ export default function Charity() {
                     {item.data.charityImage ? (
                       <>
                         <img src={item.data.charityImage} alt="charityimage" />
-                        <p>{item.data.charityName}</p>
+                        <p className="charitydetail">{item.data.charityName}</p>
                       </>
                     ) : (
                       <>
                         <img src={NoImage} alt="" />
-                        <p>{item.data.charityName}</p>
+                        <p className="charitydetail">{item.data.charityName}</p>
                       </>
                     )}
                   </td>
