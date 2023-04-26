@@ -22,7 +22,6 @@ export default function useClients() {
       setLoading(false);
     }
   };
-console.log(clients,'clients');
   useEffect(() => {
     getClients();
   }, []);

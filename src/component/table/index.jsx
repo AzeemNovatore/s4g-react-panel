@@ -18,6 +18,7 @@ export function TableComponent({
   surveysList,
   tableName,
   viewSingleClient,
+  filterData,
 }) {
   const SecondsToDate = (seconds) => {
     const date = new Date(seconds);

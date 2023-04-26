@@ -15,6 +15,8 @@ const updateClient = "/update_Client/:id";
 const viewClient = "/viewClient"
 const clientSurveyDetails = "/clients/clientSurveyDetails/:id";
 const addClient = "/clients/addClient"
+const notifications = "/notifications"
+const addNotification = "/notifications/addNotification"
 
 export {
   dashboard,
@@ -34,4 +36,6 @@ export {
   viewClient,
   clientSurveyDetails,
   addClient,
+  notifications,
+  addNotification,
 };

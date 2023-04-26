@@ -170,9 +170,17 @@ export default function Clients() {
   }, [updateClientState]);
 
   useEffect(() => {
-    const filtered = currentItems?.filter((item) =>
-      item.data.client_name.toLowerCase().includes(searchClient.toLowerCase())
+    if (searchClient === "") {
+      setData(tableList);
+    }
+    const filtered = currentItems?.filter(
+      (item) =>
+        item.data.cont_name
+          .toLowerCase()
+          .includes(searchClient.toLowerCase()) ||
+        item.data.client_name.toLowerCase().includes(searchClient.toLowerCase())
     );
+    debugger;
     setData(filtered);
   }, [searchClient, currentItems]);
 
@@ -213,7 +221,8 @@ export default function Clients() {
         buttonText="View Details"
         handleDelete={deleteModal}
         viewSingleClient={viewSingleClient}
-        tableData={tableList}
+        tableData={data}
+        filterData={data}
         handlePageClick={handlePageClick}
         pageCount={pageCount}
         surveysList={surveys}

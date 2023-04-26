@@ -31,6 +31,7 @@ import DraftSurveys from "../../src/assets/images/draft_surveys.png";
 import BackPress from "../../src/assets/images/backPress.png";
 import Camera from "../../src/assets/images/cameraIcon.png";
 import Clients from "../../src/assets/images/clienticon.png";
+import Notifications from "../../src/assets/images/notification-icon.png"
 
 export {
   Delete,
@@ -65,4 +66,5 @@ export {
   QuestionUpdate,
   Question,
   Clients,
+  Notifications,
 };

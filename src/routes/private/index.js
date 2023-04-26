@@ -1,3 +1,4 @@
+import { components } from "react-select";
 import {
   Dashboard,
   BannerImages,
@@ -15,6 +16,8 @@ import {
   AddClient,
 } from "../../pages";
 import SingleItemClient from "../../pages/clients/viewClient";
+import Notifications from "../../pages/notifications";
+import AddNotification from "../../pages/notifications/addNotfication";
 
 import {
   addCharity,
@@ -34,6 +37,8 @@ import {
   addClient,
   updateClient,
   viewClient,
+  notifications,
+  addNotification,
 } from "../pathnames";
 
 const privateRoutes = [
@@ -98,12 +103,12 @@ const privateRoutes = [
     path: updateCharity,
   },
   {
-    title: "Client",
+    title: "Clients",
     component: Clients,
     path: clients,
   },
   {
-    title: "Client ",
+    title: "Client",
     component: ClientSurveyDetails,
     path: clientSurveyDetails,
   },
@@ -122,6 +127,16 @@ const privateRoutes = [
     component: AddClient,
     path: addClient,
   },
+  {
+    title: "Notifications",
+    component: Notifications,
+    path: notifications,
+  },
+  {
+    title: "Add New Notification",
+    component: AddNotification,
+    path: addNotification,
+  }
 ];
 
 export default privateRoutes;

@@ -6,6 +6,7 @@ import {
   DraftSurveys,
   Surveys,
   Clients,
+  Notifications,
 } from "../utils/image";
 
 import {
@@ -14,7 +15,7 @@ import {
   surveys,
   categories,
   bannerImages,
-  drafts, clients
+  drafts, clients, notifications
 } from "./pathnames";
 
 export const routesList = [
@@ -53,4 +54,9 @@ export const routesList = [
     icon: Clients,
     path: clients,
   },
+  {
+    name: "Notifications",
+    icon: Notifications,
+    path: notifications,
+  }
 ];
