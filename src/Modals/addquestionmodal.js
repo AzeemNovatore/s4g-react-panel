@@ -66,19 +66,6 @@ export default function Addquestionmodal({
   // };
   
 
-  // const optionAddHandler = (e, index) => {
-  //   const { name, value } = e.target;
-  //   const list = [...questionvalues.options];
-  //   list[index][name] = value;
-  //   if (list[index].title && list[index].value && list[index].title !== list[index].value) {
-  //     list[index].error = "Title and Value must be same";
-  //   } else {
-  //     delete list[index].error;
-  //   }
-  //   setQuestionvalues({ ...questionvalues, options: list });
-  // };
-  
-
   const optionImageHandler = async (e) => {
     console.log("e.target.files[0]", e.target.files[0]);
     const file = await compressFile(e.target.files[0]);
@@ -122,7 +109,7 @@ export default function Addquestionmodal({
     if (!addInput) {
       setAddInput(true);
       setIndex(i);
-  
+
       setQuestionvalues((current) => {
         const list = [...current.options];
         list[i].isOther = true;
@@ -655,11 +642,12 @@ export default function Addquestionmodal({
                           className="form-control mt-2"
                           placeholder="Enter Option Value"
                           value={item.value = item.title}
-                          onChange={(e) => optionAddHandler(e, i)}
+                          // onChange={(e) => optionAddHandler(e, i)}
                           disabled
                           hidden
                         />
-                        {/* {item.error  && <div className="error__msg">{item.error}</div>} */}
+                        {questionvalues?.questionType === "SINGLEQUESTION" ?
+                        <>
                         { addInput && index === i ? 
                         <input
                           type="text"
@@ -673,7 +661,7 @@ export default function Addquestionmodal({
                         <button className="m-0" onClick={()=> {
                          handleInputClick(i)}} type="button"
                           >{addInput ? "Remove Field" :"Add Field"}</button>
-                      </div>:<></>}
+                      </div>:<></>}</>: <></>}
                       </>
                     ))}
                   </>

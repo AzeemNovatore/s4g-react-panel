@@ -16,7 +16,7 @@ const viewClient = "/viewClient"
 const clientSurveyDetails = "/clients/clientSurveyDetails/:id";
 const addClient = "/clients/addClient"
 const notifications = "/notifications"
-const addNotification = "/notifications/addNotification"
+const addNotification = "/addNotification"
 
 export {
   dashboard,

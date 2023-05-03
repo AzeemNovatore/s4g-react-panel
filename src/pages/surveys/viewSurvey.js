@@ -13,6 +13,7 @@ export default function SingleItemSurvey() {
   const movetosurvey = () => {
     history.push("/surveys");
   };
+  
   const handleClick=()=> {
     history.goBack();
   };

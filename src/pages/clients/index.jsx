@@ -180,7 +180,6 @@ export default function Clients() {
           .includes(searchClient.toLowerCase()) ||
         item.data.client_name.toLowerCase().includes(searchClient.toLowerCase())
     );
-    debugger;
     setData(filtered);
   }, [searchClient, currentItems]);
 
