@@ -3,6 +3,7 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { configs } from "../../configs";
 import { getStorage } from "firebase/storage";
+import 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: configs.firbase.apiKey,
@@ -32,6 +33,14 @@ export const documentIds = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// const messaging = initializeApp.messaging();
+
+// messaging.requestPermission().then(()=>{
+//   console.log('Notification permission granted.');
+// }).catch((err)=>{
+//   console.log('Unable to get permission to notify.', err);
+// });
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);

@@ -15,7 +15,7 @@ import {
   surveys,
   categories,
   bannerImages,
-  drafts, clients, notifications
+  drafts, clients, addNotification
 } from "./pathnames";
 
 export const routesList = [
@@ -57,6 +57,6 @@ export const routesList = [
   {
     name: "Notifications",
     icon: Notifications,
-    path: notifications,
+    path: addNotification,
   }
 ];
