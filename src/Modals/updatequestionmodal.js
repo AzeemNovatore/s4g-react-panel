@@ -28,6 +28,9 @@ export default function Updatequestionmodal({
   const [indexImage, setIndexImage] = useState();
   const [addInput, setAddInput] = useState(false);
   const [removeField, setRemoveField] = useState(false);
+  const [isOther, setIsOther] = useState(true);
+
+  
   const [state, setState] = useState({
     title: "",
     fieldtype: "",
@@ -279,6 +282,7 @@ export default function Updatequestionmodal({
       });
     } else {
       setRemoveField(false);
+      setIsOther(true)
       setState((current) => {
         const list = [...current.options];
         list[index].isOther = true;
@@ -343,7 +347,13 @@ export default function Updatequestionmodal({
   }, [updateImage]);
 
   useEffect(()=>{
-    console.log('state.options',state.options)
+   const filter =  state?.options?.some(obj => obj.hasOwnProperty("isOther"));
+   if(filter === false) setIsOther(false)
+   else{
+    setIsOther(true)
+   }
+
+
   },[state.options])
 
   return (
@@ -533,7 +543,7 @@ export default function Updatequestionmodal({
                         name="value"
                         value={(item.value = item.title)}
                         placeholder="Enter Option Value"
-                        onChange={(e) => handleOptionChange(e, i)}
+                        // onChange={(e) => handleOptionChange(e, i)}
                         className="form-control mt-1"
                         disabled
                         hidden
@@ -558,7 +568,7 @@ export default function Updatequestionmodal({
                             </button>
                           </div>
                         </>
-                      ) : removeField === true ? (
+                      ) : removeField === true || !isOther ?  (
                         <div className="draft_btn d-flex justify-content-end mt-3 me-2">
                           <button
                             className="m-0"

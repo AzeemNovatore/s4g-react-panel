@@ -89,6 +89,7 @@ export default function AddClient() {
     });
     history.push(clients);
   };
+
   const handleChange = (e) => {
     const { name, value, type } = e.target;
     setFormvalues((prev) => ({
