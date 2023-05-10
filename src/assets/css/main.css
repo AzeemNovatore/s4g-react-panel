@@ -2497,3 +2497,8 @@ Single-charity section */
   background-color: #054970;
   color: #fff !important;
 }
+
+.btn:hover{
+  background-color: #054970;
+  border-color: #054970;
+}

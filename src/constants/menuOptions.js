@@ -41,8 +41,9 @@ export const Educations = [
   { label: "High School", value: "High School" },
   { label: "College", value: "College" },
   { label: "University", value: "University" },
-  { label: "Post Secondary", value: "Post Secondary" },
-  { label: "Trade and Apprenticeship", value: "Trade and Apprenticeship" },
+  { label: "Post Graduate", value: "Post Graduate" },
+  { label: "Graduate", value: "Graduate" },
+  // { label: "Trade and Apprenticeship", value: "Trade and Apprenticeship" },
 ];
 
 export const Relations = [

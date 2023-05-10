@@ -17,6 +17,8 @@ export default function Dashboard() {
   const { charities } = useCharities();
   const {users} = useUsers();
 
+  console.log(users, "users"); 
+
   useEffect(() => {
     const liveSurveys = surveys.filter(
       (item) => item.data.target?.isDraft === false

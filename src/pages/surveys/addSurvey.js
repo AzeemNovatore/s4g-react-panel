@@ -1,7 +1,7 @@
 import React from "react";
 import { uploadImg, Delete, NoImage } from "../../utils/image";
 import { useState, useEffect } from "react";
-import { collection, doc } from "firebase/firestore";
+import { collection, doc, getDocs, query, where} from "firebase/firestore";
 import DateTimePicker from "react-datetime-picker";
 import { collections, db, storageGet } from "../../services/firebase";
 import moment from "moment";
@@ -21,6 +21,8 @@ import { surveys, drafts } from "../../routes/pathnames";
 import { dimensions } from "../../constants";
 import useClients from "../../hooks/useClients";
 import Dropdownclientsurvey from "../../component/dropdown/dropdownclientsurvey";
+import AddSurveyNotification from "../../Modals/addSurveyNotification";
+import useUsers from "../../hooks/useUser";
 
 export default function AddSurvey() {
   // sruveys add all values
@@ -83,6 +85,89 @@ export default function AddSurvey() {
   const { clients } = useClients();
   const [clientsNames, setClientsNames] = useState([]);
   const [optionvalues, setOptionvalues] = useState(initialoptionvalues);
+  const [showModal, setShowModal] = useState(false);
+  const initialNotificationValues = {
+    title: "",
+    description: "",
+  };
+  const [notificationValues, setNotificationValues] = useState({ ...initialNotificationValues });
+  
+  const notifyAllUsers = async (
+    selectedAges,
+    genders,
+    relations,
+    kids,
+    education
+  ) => {
+    const userRef = collection(db, collections.users);
+  
+    const snapshot = await getDocs(userRef);
+  
+    const usersList = snapshot.docs.reduce((acc, doc) => {
+      const user = doc.data();
+      const demographics = user.demographics || {};
+      const genderMatch = demographics.gender && genders.includes(demographics.gender);
+      const relationMatch = demographics.relationship && relations.includes(demographics.relationship);
+      const childrensMatch = demographics.childrens && kids.includes(demographics.childrens);
+      const educationMatch = demographics.education && education.includes(demographics.education);
+      const dateOfBirth = demographics.dateofbirth;
+      const ageMatch = dateOfBirth && selectedAges.includes(getAgeFromDateOfBirth(dateOfBirth).toString());
+
+      if (genderMatch && relationMatch && childrensMatch && educationMatch && ageMatch) {
+        acc.push({
+          data: user,
+          id: doc.id,
+        });
+      }
+      return acc;
+    }, []);
+    if (usersList?.length >0) {
+    sentNotification(usersList);
+    }
+  };
+
+  
+const getAgeFromDateOfBirth = (dateOfBirth) => {
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+  debugger
+  return age;
+};
+  // const notifyAllUsers = async (
+  //   selectedAges,
+  //   genders,
+  //   relations,
+  //   kids,
+  //   education
+  // ) => {
+  //   debugger;
+  //   await getDocs(
+  //   query(
+  //     collection(db, collections.users),
+  //     where("demographics.gender", "in", genders),
+  //     where("demographics.relationship", "in", relations),
+  //     where("demographics.childrens", "array-contains-any", kids),
+  //     where("demographics.education", "array-contains-any", education)
+  //   )
+  //   ).then((snapshot) => {
+  //     const listData = snapshot ? snapshot.docs : [];
+  //     const usersList = listData.map((doc) => ({
+  //       data: doc.data(),
+  //       id: doc.id,
+  //     }));
+  //     console.log(usersList, "usersList"); 
+  //     debugger;
+  //   });
+  // };
+
 
   //main handle change
   const handleChange = (e) => {
@@ -264,12 +349,10 @@ export default function AddSurvey() {
           // const progress =
           //   (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         },
-
         (error) => {
           // error function ....
           alert(error);
         },
-
         async () => {
           await downloadImageUrl(uploadTask.snapshot.ref).then(
             async (downloadURL) => {
@@ -289,11 +372,9 @@ export default function AddSurvey() {
               const educationval = formvalues.target.education.map(
                 (item) => item.value
               );
-
               const currentDate = new Date();
-
               const newDocRef = doc(collection(db, collections.survey));
-              const payload = {
+              await addSurveyDoc(newDocRef, {
                 client: {
                   clientName: formvalues?.client?.label,
                   clientid: formvalues.client.value,
@@ -301,14 +382,12 @@ export default function AddSurvey() {
                 reward: {
                   tokens: parseInt(formvalues.reward.tokens),
                 },
-
                 survey: {
                   questions: formvalues.survey.questions,
                   surveyImage: surveyimagefile?.name ? downloadURL : NoImage,
                   tagline: formvalues.survey.tagline,
                   title: formvalues.survey.title,
                 },
-
                 surveyid: newDocRef.id,
                 target: {
                   active:
@@ -328,17 +407,22 @@ export default function AddSurvey() {
                   from: formvalues.target.from,
                   to: formvalues.target.to,
                 },
-              };
-              await addSurveyDoc(newDocRef, payload);
+              });
+
+              if (!isDraft) {
+                await notifyAllUsers(
+                  selectedAges,
+                  genderval,
+                  relationval,
+                  kidsval,
+                  educationval
+                );
+              }
             }
           );
           toast.success("Survey is Added Successfully");
           setLoading(false);
-          if (isDraft) {
-            history.push(drafts);
-          } else {
-            history.push(surveys);
-          }
+          history.push(isDraft ? drafts : surveys);
         }
       );
       setFormvalues({ ...formvalues, ...initialformvalues });
@@ -347,6 +431,46 @@ export default function AddSurvey() {
     }
   };
 
+  const sentNotification = async (usersList) =>{
+    for (let i = 0; i < usersList.length; i++) {
+      const message = {
+        notification: {
+          title: notificationValues.title,
+          body: notificationValues.description,
+        },
+        to: `/topics/${usersList[i].id}`,
+        priority: "high",
+        data: {
+          status: "done",
+        },
+      };
+  
+      try {
+        // Send the push notification via Firebase API
+        const response = await fetch("https://fcm.googleapis.com/fcm/send", {
+          method: "POST",
+          headers: {
+            Authorization:
+              "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(message),
+        });
+  
+        if (response.ok) {
+          setNotificationValues(initialNotificationValues);
+          toast.success("Notification sent!");
+        } else {
+          console.error(`Firebase API returned ${response.status} error`);
+          toast.error("Error sending notification");
+        }
+      } catch (error) {
+        console.error("Error sending notification", error);
+        toast.error("Error sending notification");
+      }
+    };
+  };
+  
   const addDataList = () => {
     // if (formvalues.target.active) {
     const validateForm = validate(formvalues);
@@ -457,6 +581,14 @@ export default function AddSurvey() {
         setVideoFile={setVideoFile}
         setOptionvalues={setOptionvalues}
       />
+
+      <AddSurveyNotification 
+      setShowModal={setShowModal} 
+      show={showModal} 
+      notificationValues={notificationValues} 
+      setNotificationValues={setNotificationValues} 
+      />
+
       <div class="back_btn mt-3 ms-4" onClick={() => movetosurvey()}>
         <button>Back</button>
       </div>
@@ -857,6 +989,15 @@ export default function AddSurvey() {
               onChange={handleChange}
             />{" "}
             If you want to active this survey then please check{" "}
+          </p>
+          <p>
+            {" "}
+            <input
+              type="checkbox"
+              onChange={() => setShowModal(true)}
+              checked={ notificationValues?.title && notificationValues?.description ? true : false}
+            />{" "}
+            If you send notification please check{" "}
           </p>
         </div>
         <div class="single_button ">

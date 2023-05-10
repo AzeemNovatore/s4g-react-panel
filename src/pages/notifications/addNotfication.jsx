@@ -13,30 +13,49 @@ export default function AddNotification() {
   const [formvalues, setFormvalues] = useState({ ...initialFormValues });
   const [formError, setFormError] = useState({});
 
-  const validate = (values) => {
-    const errors = {};
-    if (!values.title) {
-      errors.title = "Notification Title is Required";
-    }
-    if (!values.description) {
-      errors.description = "Notification Text is Required";
-    }
-    return errors;
-  };
+  // const validate = (values) => {
+  //   const errors = {};
+  //   if (!values.title) {
+  //     errors.title = "Notification Title is Required";
+  //   }
+  //   if (!values.description) {
+  //     errors.description = "Notification Text is Required";
+  //   }
+  //   return errors;
+  // };
+
+  // const sentNotification = (e) => {
+  //   e.preventDefault();
+  //   const validateForm = validate(formvalues);
+  //   setFormError(validateForm);
+
+  //   if (Object.keys(validateForm).length > 0)
+  //     return toast.error("Fields are Empty");
+  //   else handleClick();
+  // };
+
+  const validate = (values) => ({
+    ...(values.title ? {} : { title: "Notification Title is Required" }),
+    ...(values.description
+      ? {}
+      : { description: "Notification Text is Required" }),
+  });
 
   const sentNotification = (e) => {
     e.preventDefault();
     const validateForm = validate(formvalues);
     setFormError(validateForm);
 
-    if (Object.keys(validateForm).length > 0)
+    if (Object.keys(validateForm).length > 0) {
       return toast.error("Fields are Empty");
-    else handleClick();
+    }
+    handleClick();
   };
 
   const handleChange = (value, name) => {
     setFormvalues({ ...formvalues, [name]: value });
   };
+
   const handleClick = async () => {
     const message = {
       notification: {
@@ -44,6 +63,7 @@ export default function AddNotification() {
         body: formvalues.description,
       },
       to: "/topics/allusers",
+      // to: "/topics/3XyZkhM7KcVnJo3aBRbKxKzrVd62",
       priority: "high",
       data: {
         status: "done",
@@ -64,7 +84,6 @@ export default function AddNotification() {
 
       if (response.ok) {
         setFormvalues(initialFormValues);
-
         toast.success("Notification sent!");
       } else {
         console.error(`Firebase API returned ${response.status} error`);
@@ -84,7 +103,7 @@ export default function AddNotification() {
             <div className="col-xl-6 col-lg-6 mb-3">
               <div className="fields_charity">
                 <label>
-                  Notfification Title <span className="redColor">*</span>
+                  Notification Title <span className="redColor">*</span>
                 </label>
                 <br />
                 <input
@@ -104,7 +123,7 @@ export default function AddNotification() {
             <div className="col-xl-6 col-lg-6 mb-3">
               <div className="fields_charity">
                 <label>
-                  Notfification Text <span className="redColor">*</span>
+                  Notification Text <span className="redColor">*</span>
                 </label>
                 <br />
                 <input
@@ -124,10 +143,8 @@ export default function AddNotification() {
           </div>
         </div>
         <div className="check-button justify-content-end">
-          <div className="single_button">
-            <div className="donate_btn">
-              <Button type="submit">Submit</Button>
-            </div>
+          <div className="donate_btn">
+            <Button type="submit">Submit</Button>
           </div>
         </div>
       </form>
