@@ -22,7 +22,7 @@ export default function AddSurveyNotification({
       errors.title = "Notification Title is Required";
     }
     if (!values.description) {
-      errors.description = "Notification Text is Required";
+      errors.description = "Notification Message is Required";
     }
     return errors;
   };
@@ -77,13 +77,13 @@ export default function AddSurveyNotification({
             <div className="col-xl-12 col-lg-12 mb-3">
               <div className="fields_charity">
                 <label>
-                  Notification Text <span className="redColor">*</span>
+                Notification Message <span className="redColor">*</span>
                 </label>
                 <br />
                 <input
                   type="text"
                   name=""
-                  placeholder="Notification Text"
+                  placeholder="Notification Message"
                   value={notificationValues.description}
                   onChange={(e) => handleChange(e.target.value, "description")}
                 />

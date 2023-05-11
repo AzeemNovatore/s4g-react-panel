@@ -97,7 +97,8 @@ export default function AddSurvey() {
     genders,
     relations,
     kids,
-    education
+    education,
+    notificationSendDate
   ) => {
     const userRef = collection(db, collections.users);
   
@@ -122,7 +123,7 @@ export default function AddSurvey() {
       return acc;
     }, []);
     if (usersList?.length >0) {
-    sentNotification(usersList);
+    sentNotification(usersList, notificationSendDate);
     }
   };
 
@@ -138,9 +139,9 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
   ) {
     age--;
   }
-  debugger
   return age;
 };
+
   // const notifyAllUsers = async (
   //   selectedAges,
   //   genders,
@@ -415,7 +416,9 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
                   genderval,
                   relationval,
                   kidsval,
-                  educationval
+                  educationval,
+                  formvalues.target.from
+
                 );
               }
             }
@@ -431,7 +434,52 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
     }
   };
 
-  const sentNotification = async (usersList) =>{
+  // const sentNotification = async (usersList,notificationSendDate) =>{
+  //   debugger
+  //   for (let i = 0; i < usersList.length; i++) {
+  //     const message = {
+  //       notification: {
+  //         title: notificationValues.title,
+  //         body: notificationValues.description,
+  //       },
+  //       to: `/topics/${usersList[i].id}`,
+  //       priority: "high",
+  //       data: {
+  //         status: "done",
+  //       },
+  //        // Set the scheduled send time
+  //        scheduleTime: notificationSendDate.toISOString(), 
+  //     };
+  
+  //     try {
+  //       // Send the push notification via Firebase API
+  //       const response = await fetch("https://fcm.googleapis.com/fcm/send", {
+  //         method: "POST",
+  //         headers: {
+  //           Authorization:
+  //             "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(message),
+  //       });
+  
+  //       if (response.ok) {
+  //         setNotificationValues(initialNotificationValues);
+  //         toast.success("Notification sent!");
+  //       } else {
+  //         console.error(`Firebase API returned ${response.status} error`);
+  //         toast.error("Error sending notification");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error sending notification", error);
+  //       toast.error("Error sending notification");
+  //     }
+  //   };
+  // };
+
+  const sentNotification = async (usersList, notificationSendDate) => {
+    const promises = [];
+  
     for (let i = 0; i < usersList.length; i++) {
       const message = {
         notification: {
@@ -445,31 +493,47 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
         },
       };
   
-      try {
-        // Send the push notification via Firebase API
-        const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-          method: "POST",
-          headers: {
-            Authorization:
-              "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(message),
-        });
+      const scheduledTime = notificationSendDate.getTime() - Date.now();
   
-        if (response.ok) {
-          setNotificationValues(initialNotificationValues);
-          toast.success("Notification sent!");
-        } else {
-          console.error(`Firebase API returned ${response.status} error`);
-          toast.error("Error sending notification");
-        }
-      } catch (error) {
-        console.error("Error sending notification", error);
-        toast.error("Error sending notification");
-      }
-    };
+      const promise = new Promise((resolve, reject) => {
+        setTimeout(async () => {
+          try {
+            const response = await fetch("https://fcm.googleapis.com/fcm/send", {
+              method: "POST",
+              headers: {
+                Authorization:
+                  "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(message),
+            });
+  
+            if (response.ok) {
+              resolve();
+            } else {
+              console.error(`Firebase API returned ${response.status} error`);
+              reject(new Error("Error sending notification"));
+            }
+          } catch (error) {
+            console.error("Error sending notification", error);
+            reject(error);
+          }
+        }, scheduledTime);
+      });
+  
+      promises.push(promise);
+    }
+  
+    try {
+      await Promise.all(promises);
+      setNotificationValues(initialNotificationValues);
+      toast.success("Notification sent!");
+    } catch (error) {
+      console.error("Error sending notification", error);
+      toast.error("Error sending notification");
+    }
   };
+  
   
   const addDataList = () => {
     // if (formvalues.target.active) {
@@ -997,7 +1061,7 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
               onChange={() => setShowModal(true)}
               checked={ notificationValues?.title && notificationValues?.description ? true : false}
             />{" "}
-            If you send notification please check{" "}
+            If you want to send the notification then please check{" "}
           </p>
         </div>
         <div class="single_button ">

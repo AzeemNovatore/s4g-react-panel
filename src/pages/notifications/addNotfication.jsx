@@ -38,7 +38,7 @@ export default function AddNotification() {
     ...(values.title ? {} : { title: "Notification Title is Required" }),
     ...(values.description
       ? {}
-      : { description: "Notification Text is Required" }),
+      : { description: "Notification Message is Required" }),
   });
 
   const sentNotification = (e) => {
@@ -123,13 +123,13 @@ export default function AddNotification() {
             <div className="col-xl-6 col-lg-6 mb-3">
               <div className="fields_charity">
                 <label>
-                  Notification Text <span className="redColor">*</span>
+                  Notification Message <span className="redColor">*</span>
                 </label>
                 <br />
                 <input
                   type="text"
                   name=""
-                  placeholder="Notification Text"
+                  placeholder="Notification Message"
                   value={formvalues.description}
                   onChange={(e) => handleChange(e.target.value, "description")}
                 />

@@ -4,7 +4,7 @@ import DateTimePicker from "react-datetime-picker";
 import moment from "moment";
 import { Delete, QuestionUpdate } from "../../utils/image";
 import { ref, uploadBytesResumable } from "firebase/storage";
-import { doc } from "firebase/firestore";
+import { collection, doc, getDocs } from "firebase/firestore";
 import { collections, db, storageGet } from "../../services/firebase";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
@@ -24,6 +24,7 @@ import { dimensions } from "../../constants";
 import Dropdownclientsurvey from "../../component/dropdown/dropdownclientsurvey";
 import useClients from "../../hooks/useClients";
 import { useEffect } from "react";
+import AddSurveyNotification from "../../Modals/addSurveyNotification";
 
 export default function UpdateSurvey() {
   const location = useLocation();
@@ -120,6 +121,63 @@ export default function UpdateSurvey() {
     ...initialquestoinsvalues,
   });
   const [optionvalues, setOptionvalues] = useState({ ...initialoptionvalues });
+
+  const [showModal, setShowModal] = useState(false);
+  const initialNotificationValues = {
+    title: "",
+    description: "",
+  };
+  const [notificationValues, setNotificationValues] = useState({ ...initialNotificationValues });
+  
+  const notifyAllUsers = async (
+    selectedAges,
+    genders,
+    relations,
+    kids,
+    education,
+    notificationSendDate
+  ) => {
+    const userRef = collection(db, collections.users);
+  
+    const snapshot = await getDocs(userRef);
+  
+    const usersList = snapshot.docs.reduce((acc, doc) => {
+      const user = doc.data();
+      const demographics = user.demographics || {};
+      const genderMatch = demographics.gender && genders.includes(demographics.gender);
+      const relationMatch = demographics.relationship && relations.includes(demographics.relationship);
+      const childrensMatch = demographics.childrens && kids.includes(demographics.childrens);
+      const educationMatch = demographics.education && education.includes(demographics.education);
+      const dateOfBirth = demographics.dateofbirth;
+      const ageMatch = dateOfBirth && selectedAges.includes(getAgeFromDateOfBirth(dateOfBirth).toString());
+
+      if (genderMatch && relationMatch && childrensMatch && educationMatch && ageMatch) {
+        acc.push({
+          data: user,
+          id: doc.id,
+        });
+      }
+      return acc;
+    }, []);
+    if (usersList?.length >0) {
+    sentNotification(usersList, notificationSendDate);
+    }
+  };
+
+  
+const getAgeFromDateOfBirth = (dateOfBirth) => {
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+  return age;
+};
 
   //from datetime handler
   const fromChangeHandler = (event) => {
@@ -366,6 +424,16 @@ export default function UpdateSurvey() {
                 },
               };
               await updateSurveyDoc(surveyRef, payload);
+              
+              await notifyAllUsers(
+                selectedAges,
+                genderval,
+                relationval,
+                kidsval,
+                educationval,
+                formvalues.target.from
+
+              );
             }
           );
           toast.success("Survey is Updated Successfully");
@@ -471,6 +539,63 @@ export default function UpdateSurvey() {
     }));
   };
 
+  const sentNotification = async (usersList, notificationSendDate) => {
+    const promises = [];
+  
+    for (let i = 0; i < usersList.length; i++) {
+      const message = {
+        notification: {
+          title: notificationValues.title,
+          body: notificationValues.description,
+        },
+        to: `/topics/${usersList[i].id}`,
+        priority: "high",
+        data: {
+          status: "done",
+        },
+      };
+  
+      const scheduledTime = notificationSendDate.getTime() - Date.now();
+  
+      const promise = new Promise((resolve, reject) => {
+        setTimeout(async () => {
+          try {
+            const response = await fetch("https://fcm.googleapis.com/fcm/send", {
+              method: "POST",
+              headers: {
+                Authorization:
+                  "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(message),
+            });
+  
+            if (response.ok) {
+              resolve();
+            } else {
+              console.error(`Firebase API returned ${response.status} error`);
+              reject(new Error("Error sending notification"));
+            }
+          } catch (error) {
+            console.error("Error sending notification", error);
+            reject(error);
+          }
+        }, scheduledTime);
+      });
+  
+      promises.push(promise);
+    }
+  
+    try {
+      await Promise.all(promises);
+      setNotificationValues(initialNotificationValues);
+      toast.success("Notification sent!");
+    } catch (error) {
+      console.error("Error sending notification", error);
+      toast.error("Error sending notification");
+    }
+  };
+
   return (
     <>
       <Addquestionmodal
@@ -503,6 +628,13 @@ export default function UpdateSurvey() {
         setVideoFile={setVideoFile}
         handleClose={handleClose}
         show={show}
+      />
+
+      <AddSurveyNotification 
+      setShowModal={setShowModal} 
+      show={showModal} 
+      notificationValues={notificationValues} 
+      setNotificationValues={setNotificationValues} 
       />
 
       <div className="main-survey-update">
@@ -919,6 +1051,15 @@ export default function UpdateSurvey() {
             />{" "}
             If you want to active this survey then please check{" "}
             <span className="redColor">*</span>{" "}
+          </p>
+          <p>
+            {" "}
+            <input
+              type="checkbox"
+              onChange={() => setShowModal(true)}
+              checked={ notificationValues?.title && notificationValues?.description ? true : false}
+            />{" "}
+            If you want to send the notification then please check{" "}
           </p>
         </div>
         <div class="single_button">
