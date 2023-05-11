@@ -12,6 +12,7 @@ export default function AddSurveyNotification({
   show,
   notificationValues,
   setNotificationValues,
+  setNotification
 }) {
  
   const [formError, setFormError] = useState({});
@@ -36,6 +37,7 @@ export default function AddSurveyNotification({
       return toast.error("Fields are Empty");
     else handleClick();
     setShowModal(false);
+    setNotification(true)
   };
 
   const handleChange = (value, name) => {

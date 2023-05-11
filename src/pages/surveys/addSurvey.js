@@ -86,6 +86,8 @@ export default function AddSurvey() {
   const [clientsNames, setClientsNames] = useState([]);
   const [optionvalues, setOptionvalues] = useState(initialoptionvalues);
   const [showModal, setShowModal] = useState(false);
+  const [notification, setNotification] = useState(false);
+  
   const initialNotificationValues = {
     title: "",
     description: "",
@@ -122,7 +124,7 @@ export default function AddSurvey() {
       }
       return acc;
     }, []);
-    if (usersList?.length >0) {
+    if (usersList?.length > 0) {
     sentNotification(usersList, notificationSendDate);
     }
   };
@@ -526,14 +528,18 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
   
     try {
       await Promise.all(promises);
+      debugger
+      if(notification){
+        debugger
       setNotificationValues(initialNotificationValues);
       toast.success("Notification sent!");
+      }
     } catch (error) {
       console.error("Error sending notification", error);
       toast.error("Error sending notification");
     }
   };
-  
+  console.log(notification,"notification");
   
   const addDataList = () => {
     // if (formvalues.target.active) {
@@ -651,6 +657,7 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
       show={showModal} 
       notificationValues={notificationValues} 
       setNotificationValues={setNotificationValues} 
+      setNotification={setNotification}
       />
 
       <div class="back_btn mt-3 ms-4" onClick={() => movetosurvey()}>
@@ -1059,7 +1066,7 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
             <input
               type="checkbox"
               onChange={() => setShowModal(true)}
-              checked={ notificationValues?.title && notificationValues?.description ? true : false}
+              checked={notification && notificationValues?.title && notificationValues?.description ? true : false}
             />{" "}
             If you want to send the notification then please check{" "}
           </p>
