@@ -37,9 +37,9 @@ export default function Surveys() {
   const [surveyUpdateBoolean, setSurveyUpdateBoolean] = useState(false);
   const [data, setData] = useState([]);
   const [reminderNotifityUsers, setReminderNotifityUsers] = useState([]);
-  const [notificationEndDate, setNotificationEndDate] = useState(null);
   const [surveyActive, setSurveyActive] = useState(false);
   const [notificationSubmission, setNotificationSubmission] = useState(false);
+  const [surveyId, setSurveyId] = useState();
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -62,11 +62,16 @@ export default function Surveys() {
     relations,
     kids,
     education,
-    notificationEndDate,
-    surveyActive
+    surveyActive,
+    surveyResponseUsers
   ) => {
     const userRef = collection(db, collections.users);
     const snapshot = await getDocs(userRef);
+    const getUnmatchedItems = (usersList, surveyResponseUsers) => {
+      return usersList.filter(
+        (item1) => !surveyResponseUsers.some((item2) => item2 === item1.id)
+      );
+    };
     const usersList = snapshot.docs.reduce((acc, doc) => {
       const user = doc.data();
       const demographics = user.demographics || {};
@@ -100,8 +105,11 @@ export default function Surveys() {
     }, []);
 
     if (usersList?.length > 0) {
-      setReminderNotifityUsers(usersList);
-      setNotificationEndDate(notificationEndDate);
+      const reminderUsersList = getUnmatchedItems(
+        usersList,
+        surveyResponseUsers
+      );
+      setReminderNotifityUsers(reminderUsersList);
       setSurveyActive(surveyActive);
     }
   };
@@ -120,7 +128,7 @@ export default function Surveys() {
     return age;
   };
 
-  const sentNotification = async (usersList, surveyActive) => {
+  const sentNotification = async (usersList, surveyActive, surveyId) => {
     try {
       const promises = [];
       for (let i = 0; i < usersList.length; i++) {
@@ -133,6 +141,7 @@ export default function Surveys() {
           priority: "high",
           data: {
             status: "done",
+            id: surveyId,
           },
         };
 
@@ -324,10 +333,11 @@ export default function Surveys() {
   };
   useEffect(() => {
     if (notificationSubmission === true) {
+      debugger
       sentNotification(
         reminderNotifityUsers,
-        notificationEndDate,
-        surveyActive
+        surveyActive,
+        surveyId
       );
     }
   }, [notificationSubmission]);
@@ -349,12 +359,6 @@ export default function Surveys() {
       setPageCount(0);
     }
   }, [surveys]);
-
-  useEffect(()=>{
-    const submission =
-     allSubmissions();
-     debugger
-  },[surveys]);
 
   useEffect(() => {
     handlePagination();
@@ -392,7 +396,6 @@ export default function Surveys() {
 
     setData(filtered);
   }, [searchSurvey, currentItems]);
-  
 
   return (
     <>
@@ -468,7 +471,6 @@ export default function Surveys() {
                   </td>
                   <td>
                     <p>{item.data?.survey?.tagline}</p>
-                    <p>{item.submissionsarr}</p>
                   </td>
                   <td>
                     <div className="d-flex align-items-center gap-2">
@@ -500,21 +502,21 @@ export default function Surveys() {
                           setNotificationSubmission(false);
                           if (!item?.data?.target?.active)
                             toast.error("Survey is not active");
-                         
                           else if (
                             isDatePassed(item?.data?.target?.to) === true
                           )
                             toast.error("Survey is already completed");
                           else {
                             setShowModal(true);
+                            setSurveyId(item.data?.surveyid);
                             notifyAllUsers(
                               item?.data?.target?.age,
                               item?.data?.target?.gender,
                               item?.data?.target?.relationStatus,
                               item?.data?.target?.kids,
                               item?.data?.target?.education,
-                              item?.data?.target?.from,
-                              item?.data?.target?.active
+                              item?.data?.target?.active,
+                              item.data?.target?.surveyResponseUsers
                             );
                           }
                         }}

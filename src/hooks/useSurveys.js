@@ -32,14 +32,12 @@ export default function useSurveys() {
   const allSubmissions = () => {
     try {
       for (let i = 0; i < surveys?.length; i++) {
-        debugger
         let collectionRef = collection(
           db,
           collections.survey,
           surveys[i].id,
           collections.submissions
         );
-debugger
         // const fromDate = new Date(
         //   surveys[i].data?.target?.from.seconds * 1000 +
         //     surveys[i].data?.target?.from.nanoseconds / 1000000000
@@ -74,7 +72,7 @@ debugger
               id: doc.id,
             }));
 
-            console.log(submissionsarr[0].data.userid,'submission');
+            // console.log(submissionsarr[0].data.userid,'submission');
 
 
             // if (
@@ -84,7 +82,8 @@ debugger
             const submissionRef = doc(db, collections.survey, surveys[i].id);
             const payload = {
               target: {
-                surveyresponsecomplete: submissionsarr?.length,
+                // surveyresponsecomplete: submissionsarr?.length,
+                surveyResponseUsers: submissionsarr.map((item)=> item?.id),
                 active:
                   submissionsarr?.length >=
                   surveys[i].data.target?.surveyresponse
