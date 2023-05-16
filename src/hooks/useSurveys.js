@@ -82,8 +82,8 @@ export default function useSurveys() {
             const submissionRef = doc(db, collections.survey, surveys[i].id);
             const payload = {
               target: {
-                // surveyresponsecomplete: submissionsarr?.length,
-                surveyResponseUsers: submissionsarr.map((item)=> item?.id),
+                surveyresponsecomplete: submissionsarr?.length,
+                // surveyResponseUsers: submissionsarr.map((item)=> item?.id),
                 active:
                   submissionsarr?.length >=
                   surveys[i].data.target?.surveyresponse
