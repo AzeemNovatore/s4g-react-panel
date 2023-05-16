@@ -6,6 +6,7 @@ import {
   Delete,
   NoImage,
   AddIcon,
+  Notifications,
 } from "../../utils/image";
 import { useHistory } from "react-router-dom";
 import Pagination from "../../component/pagination/reactPaginate";
@@ -17,6 +18,9 @@ import DeleteDataModal from "../../Modals/deleteModal";
 import { toast } from "react-toastify";
 import ItemsPerPage from "../../component/pagination/itemsPerPage";
 import SearchBar from "../../component/pagination/searchBar";
+import AddSurveyNotification from "../../Modals/addSurveyNotification";
+import { collection, getDocs } from "firebase/firestore";
+import { collections, db } from "../../services/firebase";
 
 export default function Surveys() {
   const [singleItemSurvey, setSingleItemSurvey] = useState([]);
@@ -32,10 +36,188 @@ export default function Surveys() {
   const [singleItemSurveyBoolean, setSingleItemSurveyBoolean] = useState(false);
   const [surveyUpdateBoolean, setSurveyUpdateBoolean] = useState(false);
   const [data, setData] = useState([]);
-
+  const [reminderNotifityUsers, setReminderNotifityUsers] = useState([]);
+  const [notificationEndDate, setNotificationEndDate] = useState(null);
+  const [surveyActive, setSurveyActive] = useState(false);
+  const [notificationSubmission, setNotificationSubmission] = useState(false);
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
+  const [showModal, setShowModal] = useState(false);
+  const [notification, setNotification] = useState(false);
+
+  const initialNotificationValues = {
+    title: "",
+    description: "",
+  };
+
+  const [notificationValues, setNotificationValues] = useState({
+    ...initialNotificationValues,
+  });
+
+  const notifyAllUsers = async (
+    selectedAges,
+    genders,
+    relations,
+    kids,
+    education,
+    notificationEndDate,
+    surveyActive
+  ) => {
+    const userRef = collection(db, collections.users);
+    const snapshot = await getDocs(userRef);
+    const usersList = snapshot.docs.reduce((acc, doc) => {
+      const user = doc.data();
+      const demographics = user.demographics || {};
+      const genderMatch =
+        demographics.gender && genders.includes(demographics.gender);
+      const relationMatch =
+        demographics.relationship &&
+        relations.includes(demographics.relationship);
+      const childrensMatch =
+        demographics.childrens && kids.includes(demographics.childrens);
+      const educationMatch =
+        demographics.education && education.includes(demographics.education);
+      const dateOfBirth = demographics.dateofbirth;
+      const ageMatch =
+        dateOfBirth &&
+        selectedAges.includes(getAgeFromDateOfBirth(dateOfBirth).toString());
+
+      if (
+        genderMatch &&
+        relationMatch &&
+        childrensMatch &&
+        educationMatch &&
+        ageMatch
+      ) {
+        acc.push({
+          data: user,
+          id: doc.id,
+        });
+      }
+      return acc;
+    }, []);
+
+    if (usersList?.length > 0) {
+      setReminderNotifityUsers(usersList);
+      setNotificationEndDate(notificationEndDate);
+      setSurveyActive(surveyActive);
+    }
+  };
+
+  const getAgeFromDateOfBirth = (dateOfBirth) => {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  };
+
+  const sentNotification = async (usersList, surveyActive) => {
+    try {
+      const promises = [];
+      for (let i = 0; i < usersList.length; i++) {
+        const message = {
+          notification: {
+            title: notificationValues.title,
+            body: notificationValues.description,
+          },
+          to: `/topics/${usersList[i].id}`,
+          priority: "high",
+          data: {
+            status: "done",
+          },
+        };
+
+        const promise = fetch("https://fcm.googleapis.com/fcm/send", {
+          method: "POST",
+          headers: {
+            Authorization:
+              "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(message),
+        });
+
+        promises.push(promise);
+      }
+
+      await Promise.all(promises);
+      if (notification && surveyActive) {
+        setNotificationValues(initialNotificationValues);
+        toast.success("Notification sent!");
+      }
+    } catch (error) {
+      console.error("Error sending notification", error);
+      toast.error("Error sending notification");
+    }
+  };
+
+  // const sentNotification = async (usersList, notificationEndDate, surveyActive) => {
+  //   const promises = [];
+
+  //   for (let i = 0; i < usersList.length; i++) {
+  //     const message = {
+  //       notification: {
+  //         title: notificationValues.title,
+  //         body: notificationValues.description,
+  //       },
+  //       to: `/topics/${usersList[i].id}`,
+  //       priority: "high",
+  //       data: {
+  //         status: "done",
+  //       },
+  //     };
+  //     const scheduledTime = notificationEndDate === Date.now();
+  //     const promise = new Promise((resolve, reject) => {
+  //       setTimeout(async () => {
+  //         try {
+  //           const response = await fetch("https://fcm.googleapis.com/fcm/send", {
+  //             method: "POST",
+  //             headers: {
+  //               Authorization:
+  //                 "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
+  //               "Content-Type": "application/json",
+  //             },
+  //             body: JSON.stringify(message),
+  //           });
+
+  //           if (response.ok) {
+  //             resolve();
+  //           } else {
+  //             console.error(`Firebase API returned ${response.status} error`);
+  //             reject(new Error("Error sending notification"));
+  //           }
+  //           setSurveyActive(false)
+  //         } catch (error) {
+  //           setSurveyActive(false)
+  //           console.error("Error sending notification", error);
+  //           reject(error);
+  //         }
+  //       }, scheduledTime);
+  //     });
+
+  //     promises.push(promise);
+  //   }
+
+  //   try {
+  //     await Promise.all(promises);
+  //     if(notification && surveyActive){
+  //     setNotificationValues(initialNotificationValues);
+  //     toast.success("Notification sent!");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error sending notification", error);
+  //     toast.error("Error sending notification");
+  //   }
+  // };
 
   const history = useHistory();
 
@@ -106,7 +288,6 @@ export default function Surveys() {
     const liveList = surveys.filter(
       (item) => item?.data?.target?.isDraft === false
     );
-    // console.log("first", liveList);
     setCurrentItems(liveList.slice(itemOffset, endOffset));
     setPageCount(Math.ceil(liveList?.length / itemSinglePage));
   };
@@ -119,7 +300,6 @@ export default function Surveys() {
     setItemSurvey(item);
     handleShow();
   };
-
   const deleteSurvey = async () => {
     try {
       setLoading(true);
@@ -133,6 +313,24 @@ export default function Surveys() {
     getSurveys();
     handleClose();
   };
+  const convertSecondsToDate = (seconds) => {
+    const milliseconds = seconds * 1000;
+    return new Date(milliseconds);
+  };
+  const isDatePassed = (date) => {
+    const currentDate = Date.now();
+    const passedDate = convertSecondsToDate(date?.seconds);
+    return passedDate < currentDate;
+  };
+  useEffect(() => {
+    if (notificationSubmission === true) {
+      sentNotification(
+        reminderNotifityUsers,
+        notificationEndDate,
+        surveyActive
+      );
+    }
+  }, [notificationSubmission]);
 
   useEffect(() => {
     setItemOffset(0);
@@ -152,6 +350,12 @@ export default function Surveys() {
     }
   }, [surveys]);
 
+  useEffect(()=>{
+    const submission =
+     allSubmissions();
+     debugger
+  },[surveys]);
+
   useEffect(() => {
     handlePagination();
   }, [itemOffset, itemSinglePage]);
@@ -165,7 +369,7 @@ export default function Surveys() {
       setSingleItemSurveyBoolean(false);
     }
   }, [singleItemSurvey]);
-  
+
   useEffect(() => {
     if (surveyUpdateBoolean) {
       history.push({
@@ -188,6 +392,7 @@ export default function Surveys() {
 
     setData(filtered);
   }, [searchSurvey, currentItems]);
+  
 
   return (
     <>
@@ -197,6 +402,17 @@ export default function Surveys() {
         item={itemSurvey}
         deleteData={deleteSurvey}
         type="Survey"
+      />
+
+      <AddSurveyNotification
+        setShowModal={setShowModal}
+        show={showModal}
+        notificationValues={notificationValues}
+        setNotificationValues={setNotificationValues}
+        setNotification={setNotification}
+        modalTitle={"Reminder Survey Notifcation"}
+        setNotificationSubmission={setNotificationSubmission}
+        notificationStatus="notificationReminder"
       />
 
       <div className="d-flex align-items-center justify-content-between form-sec-mac">
@@ -252,6 +468,7 @@ export default function Surveys() {
                   </td>
                   <td>
                     <p>{item.data?.survey?.tagline}</p>
+                    <p>{item.submissionsarr}</p>
                   </td>
                   <td>
                     <div className="d-flex align-items-center gap-2">
@@ -277,6 +494,35 @@ export default function Surveys() {
                       </div>
                       <div onClick={() => deleteSurveyModal(item)}>
                         <img src={Delete} alt="del" className="w-100 cursor" />
+                      </div>
+                      <div
+                        onClick={() => {
+                          setNotificationSubmission(false);
+                          if (!item?.data?.target?.active)
+                            toast.error("Survey is not active");
+                         
+                          else if (
+                            isDatePassed(item?.data?.target?.to) === true
+                          )
+                            toast.error("Survey is already completed");
+                          else {
+                            setShowModal(true);
+                            notifyAllUsers(
+                              item?.data?.target?.age,
+                              item?.data?.target?.gender,
+                              item?.data?.target?.relationStatus,
+                              item?.data?.target?.kids,
+                              item?.data?.target?.education,
+                              item?.data?.target?.from,
+                              item?.data?.target?.active
+                            );
+                          }
+                        }}
+                      >
+                        <img
+                          src={Notifications}
+                          className="blue-icons w-100 cursor"
+                        />
                       </div>
                     </div>
                   </td>

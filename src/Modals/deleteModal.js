@@ -9,7 +9,6 @@ export default function DeleteDataModal({
   catIndex,
   type,
 }) {
-  console.log("catIndex", catIndex);
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Body>

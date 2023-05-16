@@ -3,7 +3,7 @@ import { Button, Modal, ModalTitle } from "react-bootstrap";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-export default function AddSurveyNotification({ 
+export default function AddSurveyNotification({
   modalTitle,
   handleSubmitNotify,
   handleClose,
@@ -12,9 +12,10 @@ export default function AddSurveyNotification({
   show,
   notificationValues,
   setNotificationValues,
-  setNotification
+  setNotification,
+  setNotificationSubmission,
+  notificationStatus,
 }) {
- 
   const [formError, setFormError] = useState({});
 
   const validate = (values) => {
@@ -32,12 +33,13 @@ export default function AddSurveyNotification({
     e.preventDefault();
     const validateForm = validate(notificationValues);
     setFormError(validateForm);
-
     if (Object.keys(validateForm).length > 0)
       return toast.error("Fields are Empty");
     else handleClick();
+    if (notificationStatus === "notificationReminder")
+      setNotificationSubmission(true);
     setShowModal(false);
-    setNotification(true)
+    setNotification(true);
   };
 
   const handleChange = (value, name) => {
@@ -79,7 +81,7 @@ export default function AddSurveyNotification({
             <div className="col-xl-12 col-lg-12 mb-3">
               <div className="fields_charity">
                 <label>
-                Notification Message <span className="redColor">*</span>
+                  Notification Message <span className="redColor">*</span>
                 </label>
                 <br />
                 <input

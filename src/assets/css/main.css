@@ -2502,3 +2502,7 @@ Single-charity section */
   background-color: #054970;
   border-color: #054970;
 }
+
+.blue-icons{
+  filter: invert(92%) sepia(98%) saturate(1505%) hue-rotate(220deg) brightness(118%) contrast(119%);
+}

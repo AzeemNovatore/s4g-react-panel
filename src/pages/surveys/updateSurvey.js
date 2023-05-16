@@ -123,6 +123,8 @@ export default function UpdateSurvey() {
   const [optionvalues, setOptionvalues] = useState({ ...initialoptionvalues });
 
   const [showModal, setShowModal] = useState(false);
+  const [notification, setNotification] = useState(false);
+  
   const initialNotificationValues = {
     title: "",
     description: "",
@@ -135,12 +137,12 @@ export default function UpdateSurvey() {
     relations,
     kids,
     education,
-    notificationSendDate
+    notificationSendDate,
+    surveyActive,
+    surveyid
   ) => {
     const userRef = collection(db, collections.users);
-  
     const snapshot = await getDocs(userRef);
-  
     const usersList = snapshot.docs.reduce((acc, doc) => {
       const user = doc.data();
       const demographics = user.demographics || {};
@@ -159,12 +161,11 @@ export default function UpdateSurvey() {
       }
       return acc;
     }, []);
-    if (usersList?.length >0) {
-    sentNotification(usersList, notificationSendDate);
+    if (usersList?.length > 0) {
+    sentNotification(usersList, notificationSendDate, surveyActive, surveyid);
     }
   };
 
-  
 const getAgeFromDateOfBirth = (dateOfBirth) => {
   const today = new Date();
   const birthDate = new Date(dateOfBirth);
@@ -178,6 +179,68 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
   }
   return age;
 };
+
+
+const sentNotification = async (usersList, notificationSendDate, surveyActive, surveyid) => {
+  const promises = [];
+
+  for (let i = 0; i < usersList.length; i++) {
+    const message = {
+      notification: {
+        title: notificationValues.title,
+        body: notificationValues.description,
+      },
+      to: `/topics/${usersList[i].id}`,
+      priority: "high",
+      data: {
+        status: "done",
+        id: surveyid,
+      },
+    };
+
+    const scheduledTime = notificationSendDate.getTime() - Date.now();
+
+    const promise = new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          const response = await fetch("https://fcm.googleapis.com/fcm/send", {
+            method: "POST",
+            headers: {
+              Authorization:
+                "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(message),
+          });
+
+          if (response.ok) {
+            resolve();
+          } else {
+            console.error(`Firebase API returned ${response.status} error`);
+            reject(new Error("Error sending notification"));
+          }
+        } catch (error) {
+          console.error("Error sending notification", error);
+          reject(error);
+        }
+      }, scheduledTime);
+    });
+
+    promises.push(promise);
+  }
+
+  try {
+    await Promise.all(promises);
+    if(notification && surveyActive){
+    setNotificationValues(initialNotificationValues);
+    toast.success("Notification sent!");
+    }
+  } catch (error) {
+    console.error("Error sending notification", error);
+    toast.error("Error sending notification");
+  }
+};
+
 
   //from datetime handler
   const fromChangeHandler = (event) => {
@@ -431,7 +494,9 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
                 relationval,
                 kidsval,
                 educationval,
-                formvalues.target.from
+                formvalues.target.from,
+                formvalues.target.active,
+                formvalues.surveyid,
 
               );
             }
@@ -539,63 +604,6 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
     }));
   };
 
-  const sentNotification = async (usersList, notificationSendDate) => {
-    const promises = [];
-  
-    for (let i = 0; i < usersList.length; i++) {
-      const message = {
-        notification: {
-          title: notificationValues.title,
-          body: notificationValues.description,
-        },
-        to: `/topics/${usersList[i].id}`,
-        priority: "high",
-        data: {
-          status: "done",
-        },
-      };
-  
-      const scheduledTime = notificationSendDate.getTime() - Date.now();
-  
-      const promise = new Promise((resolve, reject) => {
-        setTimeout(async () => {
-          try {
-            const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-              method: "POST",
-              headers: {
-                Authorization:
-                  "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(message),
-            });
-  
-            if (response.ok) {
-              resolve();
-            } else {
-              console.error(`Firebase API returned ${response.status} error`);
-              reject(new Error("Error sending notification"));
-            }
-          } catch (error) {
-            console.error("Error sending notification", error);
-            reject(error);
-          }
-        }, scheduledTime);
-      });
-  
-      promises.push(promise);
-    }
-  
-    try {
-      await Promise.all(promises);
-      setNotificationValues(initialNotificationValues);
-      toast.success("Notification sent!");
-    } catch (error) {
-      console.error("Error sending notification", error);
-      toast.error("Error sending notification");
-    }
-  };
-
   return (
     <>
       <Addquestionmodal
@@ -635,6 +643,8 @@ const getAgeFromDateOfBirth = (dateOfBirth) => {
       show={showModal} 
       notificationValues={notificationValues} 
       setNotificationValues={setNotificationValues} 
+      setNotification={setNotification}
+      modalTitle={"Survey Notifcation"}
       />
 
       <div className="main-survey-update">
