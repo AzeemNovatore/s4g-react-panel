@@ -31,7 +31,7 @@ export default function useSurveys() {
 
   const allSubmissions = () => {
     try {
-      for (let i = 0; i < surveys?.length; i++) {
+      for (let i = 0; i < surveys?.length; i++) {        
         let collectionRef = collection(
           db,
           collections.survey,
@@ -48,12 +48,12 @@ export default function useSurveys() {
           surveys[i].data.target.from?.seconds * 1000 +
             surveys[i].data.target.from?.nanoseconds / 1000000000
         );
-        console.log(
-          "dad",
-          `${fromDate.getDate()}-${
-            fromDate.getMonth() + 1
-          }-${fromDate.getFullYear()}`
-        );
+        // console.log(
+        //   "dad",
+        //   `${fromDate.getDate()}-${
+        //     fromDate.getMonth() + 1
+        //   }-${fromDate.getFullYear()}`
+        // );
         const date1 = `${fromDate.getDate()}-${
           fromDate.getMonth() + 1
         }-${fromDate.getFullYear()}`;
@@ -64,16 +64,14 @@ export default function useSurveys() {
         // if (date1 === date2) {
         //   console.log("equal");
         // }
-
         onSnapshot(collectionRef, async (querySnapshot) => {
           if (querySnapshot !== null) {
             const submissionsarr = querySnapshot.docs.map((doc) => ({
               data: doc.data(),
               id: doc.id,
             }));
-
+            
             // console.log(submissionsarr[0].data.userid,'submission');
-
 
             // if (
             //   submissionsarr?.length >= surveys[i].data.target?.surveyresponse

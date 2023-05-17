@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 import ItemsPerPage from "../../component/pagination/itemsPerPage";
 import SearchBar from "../../component/pagination/searchBar";
 import AddSurveyNotification from "../../Modals/addSurveyNotification";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { collections, db } from "../../services/firebase";
 
 export default function Surveys() {
@@ -39,8 +39,10 @@ export default function Surveys() {
   const [reminderNotifityUsers, setReminderNotifityUsers] = useState([]);
   const [surveyActive, setSurveyActive] = useState(false);
   const [notificationSubmission, setNotificationSubmission] = useState(false);
-  const [surveyId, setSurveyId] = useState();
+  const [selectedId, setSelectedId] = useState(null);
   const [show, setShow] = useState(false);
+
+  
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
@@ -56,6 +58,7 @@ export default function Surveys() {
     ...initialNotificationValues,
   });
 
+
   const notifyAllUsers = async (
     selectedAges,
     genders,
@@ -63,15 +66,12 @@ export default function Surveys() {
     kids,
     education,
     surveyActive,
-    surveyResponseUsers
+    surveyId
   ) => {
+
     const userRef = collection(db, collections.users);
     const snapshot = await getDocs(userRef);
-    const getUnmatchedItems = (usersList, surveyResponseUsers) => {
-      return usersList.filter(
-        (item1) => !surveyResponseUsers.some((item2) => item2 === item1.id)
-      );
-    };
+   
     const usersList = snapshot.docs.reduce((acc, doc) => {
       const user = doc.data();
       const demographics = user.demographics || {};
@@ -105,11 +105,11 @@ export default function Surveys() {
     }, []);
 
     if (usersList?.length > 0) {
-      const reminderUsersList = getUnmatchedItems(
-        usersList,
-        surveyResponseUsers
+      const submissions = await allSubmission(surveyId);
+      const filterUsers = usersList.filter(
+        (item1) => !submissions.includes(item1.id)
       );
-      setReminderNotifityUsers(reminderUsersList);
+      setReminderNotifityUsers(filterUsers);
       setSurveyActive(surveyActive);
     }
   };
@@ -169,122 +169,30 @@ export default function Surveys() {
     }
   };
 
-  // const sentNotification = async (usersList, notificationEndDate, surveyActive) => {
-  //   const promises = [];
-
-  //   for (let i = 0; i < usersList.length; i++) {
-  //     const message = {
-  //       notification: {
-  //         title: notificationValues.title,
-  //         body: notificationValues.description,
-  //       },
-  //       to: `/topics/${usersList[i].id}`,
-  //       priority: "high",
-  //       data: {
-  //         status: "done",
-  //       },
-  //     };
-  //     const scheduledTime = notificationEndDate === Date.now();
-  //     const promise = new Promise((resolve, reject) => {
-  //       setTimeout(async () => {
-  //         try {
-  //           const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-  //             method: "POST",
-  //             headers: {
-  //               Authorization:
-  //                 "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
-  //               "Content-Type": "application/json",
-  //             },
-  //             body: JSON.stringify(message),
-  //           });
-
-  //           if (response.ok) {
-  //             resolve();
-  //           } else {
-  //             console.error(`Firebase API returned ${response.status} error`);
-  //             reject(new Error("Error sending notification"));
-  //           }
-  //           setSurveyActive(false)
-  //         } catch (error) {
-  //           setSurveyActive(false)
-  //           console.error("Error sending notification", error);
-  //           reject(error);
-  //         }
-  //       }, scheduledTime);
-  //     });
-
-  //     promises.push(promise);
-  //   }
-
-  //   try {
-  //     await Promise.all(promises);
-  //     if(notification && surveyActive){
-  //     setNotificationValues(initialNotificationValues);
-  //     toast.success("Notification sent!");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error sending notification", error);
-  //     toast.error("Error sending notification");
-  //   }
-  // };
-
   const history = useHistory();
 
-  // const allSubmissions = () => {
-  //   try {
-  //     for (let i = 0; i < surveys?.length; i++) {
-  //       let collectionRef = collection(
-  //         db,
-  //         collections.survey,
-  //         surveys[i].id,
-  //         collections.submissions
-  //       );
-
-  //       const fromDate = new Date(
-  //         surveys[i].data?.target?.from.seconds * 1000 +
-  //           surveys[i].data?.target?.from.nanoseconds / 1000000000
-  //       );
-
-  //       const currentDate = new Date();
-  //       if (fromDate?.getTime() > currentDate.getTime()) {
-  //         console.log("greater");
-  //       }
-  //       onSnapshot(collectionRef, async (querySnapshot) => {
-  //         if (querySnapshot !== null) {
-  //           const submissionsarr = querySnapshot.docs.map((doc) => ({
-  //             data: doc.data(),
-  //             id: doc.id,
-  //           }));
-
-  //           // if (submissionsarr?.length >= surveys[i].data.target.surveyresponse) {
-  //           const submissionRef = doc(db, collections.survey, surveys[i].id);
-  //           const payload = {
-  //             target: {
-  //               active:
-  //                 submissionsarr?.length >=
-  //                   surveys[i].data.target.surveyresponse ||
-  //                 fromDate?.getTime() > currentDate.getTime()
-  //                   ? false
-  //                   : true,
-  //               age: surveys[i].data.target.age,
-  //               ageIds: surveys[i].data.target.ageIds,
-  //               education: surveys[i].data.target.education,
-  //               gender: surveys[i].data.target.gender,
-  //               kids: surveys[i].data.target.kids,
-  //               relationStatus: surveys[i].data.target.relationStatus,
-  //               surveyresponse: surveys[i].data.target.surveyresponse,
-  //               from: surveys[i].data.target.from,
-  //               to: surveys[i].data.target.to,
-  //             },
-  //           };
-  //           await surveySubmissionDoc(submissionRef, payload);
-  //         }
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
+  const allSubmission = async (surveyId) => {
+    let collectionRef = collection(
+      db,
+      collections.survey,
+      surveyId,
+      collections.submissions
+    );
+    try {
+      const querySnapshot = await new Promise((resolve, reject) => {
+        onSnapshot(collectionRef, resolve, reject);
+      });
+  
+      if (querySnapshot !== null) {
+        const submissionsarr = querySnapshot.docs.map((doc) => (
+          doc.data().userid
+        ));
+        return submissionsarr;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handlePageClick = (event) => {
     const newOffset = (event.selected * itemSinglePage) % surveys?.length;
@@ -333,11 +241,10 @@ export default function Surveys() {
   };
   useEffect(() => {
     if (notificationSubmission === true) {
-      debugger
       sentNotification(
         reminderNotifityUsers,
         surveyActive,
-        surveyId
+        selectedId
       );
     }
   }, [notificationSubmission]);
@@ -507,8 +414,8 @@ export default function Surveys() {
                           )
                             toast.error("Survey is already completed");
                           else {
-                            setShowModal(true);
-                            setSurveyId(item.data?.surveyid);
+                            setShowModal(true);                     
+                            setSelectedId(item.data?.surveyid);
                             notifyAllUsers(
                               item?.data?.target?.age,
                               item?.data?.target?.gender,
@@ -516,7 +423,8 @@ export default function Surveys() {
                               item?.data?.target?.kids,
                               item?.data?.target?.education,
                               item?.data?.target?.active,
-                              item.data?.target?.surveyResponseUsers
+                              item.data?.surveyid
+                              // item.data?.target?.surveyResponseUsers
                             );
                           }
                         }}

@@ -111,7 +111,7 @@ export function TableComponent({
                   {item?.data?.target?.surveyresponse}
                 </td>
                 <td className="text-center">
-                  {item?.data?.target?.surveyResponseUsers?.length}
+                  {item?.data?.target?.surveyresponsecomplete}
                 </td>
                 <td>
                   <Button
