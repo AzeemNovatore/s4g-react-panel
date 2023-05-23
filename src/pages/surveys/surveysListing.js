@@ -105,7 +105,7 @@ export default function Surveys() {
     }, []);
 
     if (usersList?.length > 0) {
-      const submissions = await allSubmission(surveyId);
+      const submissions = await surveySubmission(surveyId);
       const filterUsers = usersList.filter(
         (item1) => !submissions.includes(item1.id)
       );
@@ -171,7 +171,7 @@ export default function Surveys() {
 
   const history = useHistory();
 
-  const allSubmission = async (surveyId) => {
+  const surveySubmission = async (surveyId) => {
     let collectionRef = collection(
       db,
       collections.survey,
@@ -424,7 +424,6 @@ export default function Surveys() {
                               item?.data?.target?.education,
                               item?.data?.target?.active,
                               item.data?.surveyid
-                              // item.data?.target?.surveyResponseUsers
                             );
                           }
                         }}

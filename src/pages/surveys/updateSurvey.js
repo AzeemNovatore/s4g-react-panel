@@ -124,13 +124,16 @@ export default function UpdateSurvey() {
 
   const [showModal, setShowModal] = useState(false);
   const [notification, setNotification] = useState(false);
-  
+  const [checkNotification, setCheckNotification] = useState(false);
+
   const initialNotificationValues = {
     title: "",
     description: "",
   };
-  const [notificationValues, setNotificationValues] = useState({ ...initialNotificationValues });
-  
+  const [notificationValues, setNotificationValues] = useState({
+    ...initialNotificationValues,
+  });
+
   const notifyAllUsers = async (
     selectedAges,
     genders,
@@ -146,14 +149,27 @@ export default function UpdateSurvey() {
     const usersList = snapshot.docs.reduce((acc, doc) => {
       const user = doc.data();
       const demographics = user.demographics || {};
-      const genderMatch = demographics.gender && genders.includes(demographics.gender);
-      const relationMatch = demographics.relationship && relations.includes(demographics.relationship);
-      const childrensMatch = demographics.childrens && kids.includes(demographics.childrens);
-      const educationMatch = demographics.education && education.includes(demographics.education);
+      const genderMatch =
+        demographics.gender && genders.includes(demographics.gender);
+      const relationMatch =
+        demographics.relationship &&
+        relations.includes(demographics.relationship);
+      const childrensMatch =
+        demographics.childrens && kids.includes(demographics.childrens);
+      const educationMatch =
+        demographics.education && education.includes(demographics.education);
       const dateOfBirth = demographics.dateofbirth;
-      const ageMatch = dateOfBirth && selectedAges.includes(getAgeFromDateOfBirth(dateOfBirth).toString());
+      const ageMatch =
+        dateOfBirth &&
+        selectedAges.includes(getAgeFromDateOfBirth(dateOfBirth).toString());
 
-      if (genderMatch && relationMatch && childrensMatch && educationMatch && ageMatch) {
+      if (
+        genderMatch &&
+        relationMatch &&
+        childrensMatch &&
+        educationMatch &&
+        ageMatch
+      ) {
         acc.push({
           data: user,
           id: doc.id,
@@ -162,85 +178,91 @@ export default function UpdateSurvey() {
       return acc;
     }, []);
     if (usersList?.length > 0) {
-    sentNotification(usersList, notificationSendDate, surveyActive, surveyid);
+      sentNotification(usersList, notificationSendDate, surveyActive, surveyid);
     }
   };
 
-const getAgeFromDateOfBirth = (dateOfBirth) => {
-  const today = new Date();
-  const birthDate = new Date(dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 && today.getDate() < birthDate.getDate())
-  ) {
-    age--;
-  }
-  return age;
-};
-
-
-const sentNotification = async (usersList, notificationSendDate, surveyActive, surveyid) => {
-  const promises = [];
-
-  for (let i = 0; i < usersList.length; i++) {
-    const message = {
-      notification: {
-        title: notificationValues.title,
-        body: notificationValues.description,
-      },
-      to: `/topics/${usersList[i].id}`,
-      priority: "high",
-      data: {
-        status: "done",
-        id: surveyid,
-      },
-    };
-
-    const scheduledTime = notificationSendDate.getTime() - Date.now();
-
-    const promise = new Promise((resolve, reject) => {
-      setTimeout(async () => {
-        try {
-          const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-            method: "POST",
-            headers: {
-              Authorization:
-                "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(message),
-          });
-
-          if (response.ok) {
-            resolve();
-          } else {
-            console.error(`Firebase API returned ${response.status} error`);
-            reject(new Error("Error sending notification"));
-          }
-        } catch (error) {
-          console.error("Error sending notification", error);
-          reject(error);
-        }
-      }, scheduledTime);
-    });
-
-    promises.push(promise);
-  }
-
-  try {
-    await Promise.all(promises);
-    if(notification && surveyActive){
-    setNotificationValues(initialNotificationValues);
-    toast.success("Notification sent!");
+  const getAgeFromDateOfBirth = (dateOfBirth) => {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
     }
-  } catch (error) {
-    console.error("Error sending notification", error);
-    toast.error("Error sending notification");
-  }
-};
+    return age;
+  };
 
+  const sentNotification = async (
+    usersList,
+    notificationSendDate,
+    surveyActive,
+    surveyid
+  ) => {
+    const promises = [];
+
+    for (let i = 0; i < usersList.length; i++) {
+      const message = {
+        notification: {
+          title: notificationValues.title,
+          body: notificationValues.description,
+        },
+        to: `/topics/${usersList[i].id}`,
+        priority: "high",
+        data: {
+          status: "done",
+          id: surveyid,
+        },
+      };
+
+      const scheduledTime = notificationSendDate.getTime() - Date.now();
+
+      const promise = new Promise((resolve, reject) => {
+        setTimeout(async () => {
+          try {
+            const response = await fetch(
+              "https://fcm.googleapis.com/fcm/send",
+              {
+                method: "POST",
+                headers: {
+                  Authorization:
+                    "key=AAAAzdEApQU:APA91bFpk0pFFeFCwjDP6TxhoS8piWUim8tan4X0LuiqVB8px-ZSApHc71dioSMS9Ao3bTCHk_n-Qf4I5-pfY_cmjiaAXDqm84AxwAbKmxeciXShj6G-8o6CTEA_4IeP31wLSFy84nA2",
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(message),
+              }
+            );
+
+            if (response.ok) {
+              resolve();
+            } else {
+              console.error(`Firebase API returned ${response.status} error`);
+              reject(new Error("Error sending notification"));
+            }
+          } catch (error) {
+            console.error("Error sending notification", error);
+            reject(error);
+          }
+        }, scheduledTime);
+      });
+
+      promises.push(promise);
+    }
+
+    try {
+      await Promise.all(promises);
+      if (notification && surveyActive) {
+        setNotificationValues(initialNotificationValues);
+        toast.success("Notification sent!");
+      }
+    } catch (error) {
+      console.error("Error sending notification", error);
+      toast.error("Error sending notification");
+    }
+  };
 
   //from datetime handler
   const fromChangeHandler = (event) => {
@@ -487,18 +509,19 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
                 },
               };
               await updateSurveyDoc(surveyRef, payload);
-              
-              await notifyAllUsers(
-                selectedAges,
-                genderval,
-                relationval,
-                kidsval,
-                educationval,
-                formvalues.target.from,
-                formvalues.target.active,
-                formvalues.surveyid,
 
-              );
+              if (notification) {
+                await notifyAllUsers(
+                  selectedAges,
+                  genderval,
+                  relationval,
+                  kidsval,
+                  educationval,
+                  formvalues.target.from,
+                  formvalues.target.active,
+                  formvalues.surveyid
+                );
+              }
             }
           );
           toast.success("Survey is Updated Successfully");
@@ -604,6 +627,27 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
     }));
   };
 
+  useEffect(() => {
+    if (
+      notification &&
+      notificationValues?.title &&
+      notificationValues?.description
+    ) {
+      setCheckNotification(true);
+    }
+  }, [notification, notificationValues]);
+
+  const onNotificaitonCheckedChange = (e) => {
+    debugger;
+    if (e.target.checked) {
+      setShowModal(true);
+    } else {
+      setNotification(false);
+      setCheckNotification(false);
+      setNotificationValues({ title: null, description: null });
+    }
+  };
+
   return (
     <>
       <Addquestionmodal
@@ -638,13 +682,13 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
         show={show}
       />
 
-      <AddSurveyNotification 
-      setShowModal={setShowModal} 
-      show={showModal} 
-      notificationValues={notificationValues} 
-      setNotificationValues={setNotificationValues} 
-      setNotification={setNotification}
-      modalTitle={"Survey Notifcation"}
+      <AddSurveyNotification
+        setShowModal={setShowModal}
+        show={showModal}
+        notificationValues={notificationValues}
+        setNotificationValues={setNotificationValues}
+        setNotification={setNotification}
+        modalTitle={"Survey Notifcation"}
       />
 
       <div className="main-survey-update">
@@ -1066,8 +1110,8 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
             {" "}
             <input
               type="checkbox"
-              onChange={() => setShowModal(true)}
-              checked={ notificationValues?.title && notificationValues?.description ? true : false}
+              onChange={(e) => onNotificaitonCheckedChange(e)}
+              checked={checkNotification}
             />{" "}
             If you want to send the notification then please check{" "}
           </p>

@@ -37,7 +37,7 @@ export default function AddSurveyNotification({
       return toast.error("Fields are Empty");
     else handleClick();
     if (notificationStatus === "notificationReminder")
-      setNotificationSubmission(true);
+    setNotificationSubmission(true);
     setShowModal(false);
     setNotification(true);
   };
@@ -50,8 +50,13 @@ export default function AddSurveyNotification({
     setNotificationValues({ ...notificationValues });
   };
 
+  const handleModalClose = () => {
+    setShowModal(false);
+    setNotificationValues({ title: null, description: null });
+  };
+
   return (
-    <Modal show={show} onHide={() => setShowModal(false)}>
+    <Modal show={show} onHide={handleModalClose}>
       <Modal.Header closeButton>
         <Modal.Title>{modalTitle}</Modal.Title>
       </Modal.Header>

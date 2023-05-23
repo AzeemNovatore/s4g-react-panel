@@ -99,10 +99,12 @@ export default function Clients() {
       const activeSurveys = totalSurveys?.map(
         (item, idx) =>
           new Date().getTime() >=
-          new Date(item?.data?.target?.to?.seconds * 1000).getTime()
+            new Date(item?.data?.target?.to?.seconds * 1000).getTime() ||
+          item?.data?.target?.surveyresponsecomplete >=
+            item?.data?.target?.surveyresponse
       );
       clientsList[i].totalSurveys = totalSurveys;
-
+      debugger;
       clientsList[i].activeSurveys = activeSurveys?.filter(
         (value) => !value
       ).length;

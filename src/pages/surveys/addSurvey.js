@@ -86,6 +86,7 @@ export default function AddSurvey() {
   const [optionvalues, setOptionvalues] = useState(initialoptionvalues);
   const [showModal, setShowModal] = useState(false);
   const [notification, setNotification] = useState(false);
+  const [checkNotification, setCheckNotification] = useState(false);
   
   const initialNotificationValues = {
     title: "",
@@ -159,6 +160,8 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
       },
     };
 
+    debugger
+
     const scheduledTime = notificationSendDate.getTime() - Date.now();
 
     const promise = new Promise((resolve, reject) => {
@@ -202,7 +205,6 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
   }
 };
 
-
   // const notifyAllUsers = async (
   //   selectedAges,
   //   genders,
@@ -232,6 +234,7 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
 
 
   //main handle change
+
   const handleChange = (e) => {
     const { name, type, value, dataset, checked } = e.target;
     const val = type === "checkbox" ? checked : value;
@@ -471,7 +474,7 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
                 },
               });
 
-              if (!isDraft) {
+              if (!isDraft &&  notification) {
                 await notifyAllUsers(
                   selectedAges,
                   genderval,
@@ -629,6 +632,27 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
     };
     filereader.readAsDataURL(formvalues?.survey?.surveyImage);
   }, [formvalues?.survey?.surveyImage]);
+
+  useEffect(() => {
+    if (
+      notification &&
+      notificationValues?.title &&
+      notificationValues?.description
+    ) {
+      setCheckNotification(true);
+    }
+  }, [notification, notificationValues]);
+
+  const onNotificaitonCheckedChange = (e) => {
+    debugger
+    if (e.target.checked) {
+      setShowModal(true);
+    } else {
+      setNotification(false);
+      setCheckNotification(false);
+      setNotificationValues({ title: null, description: null });
+    }
+  };
 
   return (
     <>
@@ -1065,8 +1089,8 @@ const sentNotification = async (usersList, notificationSendDate, surveyActive, s
             {" "}
             <input
               type="checkbox"
-              onChange={() => setShowModal(true)}
-              checked={notification && notificationValues?.title && notificationValues?.description ? true : false}
+              onChange={(e) => onNotificaitonCheckedChange(e)}
+              checked={checkNotification}
             />{" "}
             If you want to send the notification then please check{" "}
           </p>

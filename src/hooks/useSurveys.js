@@ -38,62 +38,33 @@ export default function useSurveys() {
           surveys[i].id,
           collections.submissions
         );
-        // const fromDate = new Date(
-        //   surveys[i].data?.target?.from.seconds * 1000 +
-        //     surveys[i].data?.target?.from.nanoseconds / 1000000000
-        // );
 
-        const currentDate = new Date();
-        const fromDate = new Date(
-          surveys[i].data.target.from?.seconds * 1000 +
-            surveys[i].data.target.from?.nanoseconds / 1000000000
-        );
-        // console.log(
-        //   "dad",
-        //   `${fromDate.getDate()}-${
-        //     fromDate.getMonth() + 1
-        //   }-${fromDate.getFullYear()}`
-        // );
-        const date1 = `${fromDate.getDate()}-${
-          fromDate.getMonth() + 1
-        }-${fromDate.getFullYear()}`;
-        const date2 = `${currentDate.getDate()}-${
-          currentDate.getMonth() + 1
-        }-${currentDate.getFullYear()}`;
-        // console.log(date2);
-        // if (date1 === date2) {
-        //   console.log("equal");
-        // }
+        const currentDate = new Date().getTime();
+        const surveyStartDate = new Date(surveys[i].data.target.from.seconds * 1000).getTime();
+        const surveyEndDate = new Date(surveys[i].data.target.to.seconds * 1000).getTime();
+
+        console.log(currentDate,"currentDate");
+
         onSnapshot(collectionRef, async (querySnapshot) => {
           if (querySnapshot !== null) {
             const submissionsarr = querySnapshot.docs.map((doc) => ({
               data: doc.data(),
               id: doc.id,
             }));
-            
-            // console.log(submissionsarr[0].data.userid,'submission');
 
-            // if (
-            //   submissionsarr?.length >= surveys[i].data.target?.surveyresponse
-            // )
-            //  {
             const submissionRef = doc(db, collections.survey, surveys[i].id);
             const payload = {
               target: {
                 surveyresponsecomplete: submissionsarr?.length,
-                // surveyResponseUsers: submissionsarr.map((item)=> item?.id),
                 active:
-                  submissionsarr?.length >=
+                currentDate >= surveyEndDate  || submissionsarr?.length >=
                   surveys[i].data.target?.surveyresponse
                     ? false
-                    : // :  >= currentDate
-                    // ? true
-                    date1 === date2 &&
+                    :
+                    currentDate >= surveyStartDate &&
                       submissionsarr?.length !==
                         surveys[i].data.target?.surveyresponse
-                    ? // &&
-                      //   submissionsarr?.length !=
-                      //     surveys[i].data.target?.surveyresponse
+                    ?
                       true
                     : surveys[i].data?.target?.active,
                       isDraft: surveys[i].data.target?.isDraft,
@@ -121,6 +92,25 @@ export default function useSurveys() {
   useEffect(() => {
     getSurveys();
   }, []);
+
+    useEffect(() => {
+    // Run allSubmissions every 1 minute (adjust the interval as needed)
+    const intervalId = setInterval(allSubmissions, 60000);
+
+    // const intervalId = setInterval(() => {
+    //   const currentDateInvalid = new Date().getTime();
+    //   const secondsUntilNextMinute = 60000 - (currentDateInvalid % 60000);
+    //   setTimeout(() => {
+    //     allSubmissions();
+    //   }, secondsUntilNextMinute);
+    // }, 60000);
+
+    return () => {
+      // Clear the interval when the component unmounts
+      clearInterval(intervalId);
+    };
+  }, [allSubmissions]);
+  
 
   return { surveys, getSurveys, allSubmissions };
 }
